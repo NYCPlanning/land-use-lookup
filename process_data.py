@@ -112,14 +112,6 @@ def _(columns_to_ignore, id_columns, use_groups_cleaned):
 
 
 @app.cell
-def _(OUTPUT_DIRECTORY, use_groups_zoning_districts):
-    use_groups_zoning_districts.to_csv(
-        OUTPUT_DIRECTORY / "use_groups_zoning_districts_full.csv", index=False
-    )
-    return
-
-
-@app.cell
 def _(use_groups_zoning_districts):
     use_groups_zoning_districts["Permitted Value"].value_counts()
     return
@@ -773,10 +765,6 @@ def _(use_groups_output):
 @app.cell
 def _(OUTPUT_DIRECTORY, use_groups_output):
     use_groups_output.to_csv(
-        OUTPUT_DIRECTORY / "usegroups_by_zoningdist_with_ZR_links.csv",
-        index=False,
-    )
-    use_groups_output.to_csv(
         OUTPUT_DIRECTORY / "for_query_tool" / "uses_by_zoning_district.csv",
         index=False,
     )
@@ -786,7 +774,7 @@ def _(OUTPUT_DIRECTORY, use_groups_output):
 @app.cell
 def _(OUTPUT_DIRECTORY, use_groups_output_excel):
     use_groups_output_excel.to_excel(
-        OUTPUT_DIRECTORY / "usegroups_by_zoningdist_with_ZR_links.xlsx",
+        OUTPUT_DIRECTORY / "uses_by_zoning_district_with_ZR_links.xlsx",
         index=False,
     )
     return
@@ -1097,9 +1085,6 @@ def _(mo):
 def _(OUTPUT_DIRECTORY, code_groups_cleaned, naics_codes_output):
     naics_codes_output.to_csv(
         OUTPUT_DIRECTORY / "for_query_tool" / "naics_codes.csv", index=False
-    )
-    code_groups_cleaned.to_csv(
-        OUTPUT_DIRECTORY / "naics_codes_cleaned.csv", index=False
     )
     return
 
