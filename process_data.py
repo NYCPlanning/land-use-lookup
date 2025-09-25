@@ -3,38 +3,31 @@ import marimo
 __generated_with = "0.15.3"
 app = marimo.App(width="medium")
 
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""# Process Use Group data""")
-    return
-
-
-@app.cell
-def _():
+with app.setup:
     import marimo as mo
     from pathlib import Path
     import numpy as np
     import pandas as pd
     import re
-    return Path, mo, np, pd, re
 
-
-@app.cell
-def _(Path):
     RESOURCES_DIRECTORY = Path("./resources")
     OUTPUT_DIRECTORY = Path("./output")
-    return OUTPUT_DIRECTORY, RESOURCES_DIRECTORY
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
+    mo.md(r"""# Process Use Group data""")
+    return
+
+
+@app.cell(hide_code=True)
+def _():
     mo.md(r"""## Load use groups""")
     return
 
 
 @app.cell
-def _(RESOURCES_DIRECTORY, pd):
+def _():
     use_groups_raw = pd.read_excel(
         RESOURCES_DIRECTORY / "Use Group Chart - Transposed All UGs.xlsx"
     )
@@ -43,38 +36,36 @@ def _(RESOURCES_DIRECTORY, pd):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""## Clean use groups""")
     return
 
 
-@app.cell
-def _(pd):
-    def clean_use_groups(raw_use_groups: pd.DataFrame) -> pd.DataFrame:
-        naics_description_columns = ["Uses Header", "Uses (NAICS Code)"]
-        other_columns = [
-            col
-            for col in raw_use_groups.columns
-            if col not in naics_description_columns
-        ]
-        cleaned = raw_use_groups.replace(
-            {r"\s+$": "", r"^\s+": ""}, regex=True
-        ).replace(r"\n", "", regex=True)
-        # cleaned[other_columns] = cleaned[other_columns].replace(" ", "")
+@app.function
+def clean_use_groups(raw_use_groups: pd.DataFrame) -> pd.DataFrame:
+    naics_description_columns = ["Uses Header", "Uses (NAICS Code)"]
+    other_columns = [
+        col
+        for col in raw_use_groups.columns
+        if col not in naics_description_columns
+    ]
+    cleaned = raw_use_groups.replace(
+        {r"\s+$": "", r"^\s+": ""}, regex=True
+    ).replace(r"\n", "", regex=True)
+    # cleaned[other_columns] = cleaned[other_columns].replace(" ", "")
 
-        return cleaned
-    return (clean_use_groups,)
+    return cleaned
 
 
 @app.cell
-def _(clean_use_groups, use_groups_raw):
+def _(use_groups_raw):
     use_groups_cleaned = clean_use_groups(use_groups_raw)
     use_groups_cleaned
     return (use_groups_cleaned,)
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""### Parse zoning district values""")
     return
 
@@ -118,7 +109,7 @@ def _(use_groups_zoning_districts):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""### Parse permitted values""")
     return
 
@@ -140,7 +131,7 @@ def _():
 
 
 @app.cell
-def _(PERMITTED_CHARACTERS, pd):
+def _(PERMITTED_CHARACTERS):
     def parse_permitted_value(row: pd.Series) -> list:
         for character in PERMITTED_CHARACTERS.keys():
             if character in row["Permitted Value"]:
@@ -161,7 +152,7 @@ def _(parse_permitted_value, use_groups_zoning_districts):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""### Create "Is Allowed" column""")
     return
 
@@ -222,7 +213,7 @@ def _(use_groups_district_allowances):
 
 
 @app.cell
-def _(OUTPUT_DIRECTORY, use_groups_district_allowances):
+def _(use_groups_district_allowances):
     use_groups_district_allowances.to_csv(
         OUTPUT_DIRECTORY / "use_groups_district_allowances.csv", index=False
     )
@@ -230,7 +221,7 @@ def _(OUTPUT_DIRECTORY, use_groups_district_allowances):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""### Parse Use NAICS Code values""")
     return
 
@@ -267,7 +258,7 @@ def _(use_groups_naics_codes):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(
         r"""
     ### Add ZR links
@@ -412,8 +403,6 @@ def _():
 def _(
     commercial_dist_reg_links,
     manufacturing_dist_reg_links,
-    pd,
-    re,
     residential_dist_reg_links,
 ):
     def add_zr_links(df_input: pd.DataFrame) -> pd.DataFrame:
@@ -707,7 +696,7 @@ def _(use_groups_zr_links):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""## Export processed Use Group data""")
     return
 
@@ -763,7 +752,7 @@ def _(use_groups_output):
 
 
 @app.cell
-def _(OUTPUT_DIRECTORY, use_groups_output):
+def _(use_groups_output):
     use_groups_output.to_csv(
         OUTPUT_DIRECTORY / "for_query_tool" / "uses_by_zoning_district.csv",
         index=False,
@@ -772,7 +761,7 @@ def _(OUTPUT_DIRECTORY, use_groups_output):
 
 
 @app.cell
-def _(OUTPUT_DIRECTORY, use_groups_output_excel):
+def _(use_groups_output_excel):
     use_groups_output_excel.to_excel(
         OUTPUT_DIRECTORY / "uses_by_zoning_district_with_ZR_links.xlsx",
         index=False,
@@ -781,26 +770,26 @@ def _(OUTPUT_DIRECTORY, use_groups_output_excel):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""# Proces NAICS codes""")
     return
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""## Load NAICS codes""")
     return
 
 
 @app.cell
-def _(RESOURCES_DIRECTORY, pd):
+def _():
     code_groups_raw = pd.read_csv(RESOURCES_DIRECTORY / "naics_codes.csv")
     code_groups_raw
     return (code_groups_raw,)
 
 
 @app.cell
-def _(RESOURCES_DIRECTORY, pd):
+def _():
     naics_codes_new_raw = pd.read_excel(
         RESOURCES_DIRECTORY / "2022_NAICS_Index_File.xlsx", dtype=str
     )
@@ -809,7 +798,7 @@ def _(RESOURCES_DIRECTORY, pd):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""## Clean NAICS codes""")
     return
 
@@ -827,18 +816,16 @@ def _(code_groups_raw):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""### Create digit code columns (or "Join industry groups to 6-digit codes"?)""")
     return
 
 
-@app.cell
-def _(np):
-    def get_code_group_digits(code: str, digit_number: int) -> str:
-        if len(code) < digit_number:
-            return np.nan
-        return code[:digit_number]
-    return (get_code_group_digits,)
+@app.function
+def get_code_group_digits(code: str, digit_number: int) -> str:
+    if len(code) < digit_number:
+        return np.nan
+    return code[:digit_number]
 
 
 @app.cell
@@ -857,7 +844,7 @@ def _(code_groups_cleaned):
 
 
 @app.cell
-def _(code_groups_cleaned, get_code_group_digits):
+def _(code_groups_cleaned):
     code_groups_cleaned["code_group_one"] = code_groups_cleaned[
         "code original"
     ].apply(get_code_group_digits, digit_number=1)
@@ -886,7 +873,7 @@ def _(code_groups_cleaned):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""### merge experiments""")
     return
 
@@ -898,7 +885,7 @@ def _(six_digit_codes):
 
 
 @app.cell
-def _(get_code_group_digits, six_digit_codes):
+def _(six_digit_codes):
     word_to_number = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5}
 
     all_codes = six_digit_codes.copy()
@@ -982,7 +969,7 @@ def _(all_codes_merged):
 
 
 @app.cell
-def _(code_groups_cleaned, pd, word_to_number):
+def _(code_groups_cleaned, word_to_number):
     def merge_all_use_groups(six_digit_codes: pd.DataFrame, code_groups: pd.DataFrame) -> pd.DataFrame:
         all_codes_merged = six_digit_codes.merge(
             code_groups[["code original", "2022 NAICS US Title"]],
@@ -1076,13 +1063,13 @@ def _(naics_codes_output):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""## Export processed NAICS codes""")
     return
 
 
 @app.cell
-def _(OUTPUT_DIRECTORY, code_groups_cleaned, naics_codes_output):
+def _(naics_codes_output):
     naics_codes_output.to_csv(
         OUTPUT_DIRECTORY / "for_query_tool" / "naics_codes.csv", index=False
     )
@@ -1090,7 +1077,7 @@ def _(OUTPUT_DIRECTORY, code_groups_cleaned, naics_codes_output):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""# Explore Use Group data""")
     return
 
@@ -1103,7 +1090,7 @@ def _(use_groups_output):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""# Explore Use Group and NAICS overlap""")
     return
 
@@ -1116,7 +1103,7 @@ def _(code_groups_cleaned):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""Not all not Use Groups have declared associations with NAICS codes""")
     return
 
@@ -1129,7 +1116,7 @@ def _(use_groups):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""Do all NAICS codes in Use Group data appear in the NAICS code data?""")
     return
 
@@ -1159,13 +1146,13 @@ def _(uses_codes_joined_no_join):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""NACICS values in Use Group data that are lists can't simply be joined to the NAICS Codes data""")
     return
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""## Look at specific use groups""")
     return
 
@@ -1183,7 +1170,7 @@ def _(uses_codes_joined):
 
 
 @app.cell
-def _(mo):
+def _():
     mo.md(r"""Can three-digit codes from Use Group data be linked to all relevant NAICS codes?""")
     return
 
@@ -1198,7 +1185,7 @@ def _(naics_codes, uses_codes_joined_use_district_focus):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""## Look at specific zoning districts""")
     return
 
