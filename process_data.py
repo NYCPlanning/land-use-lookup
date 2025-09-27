@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.15.3"
+__generated_with = "0.16.2"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -76,14 +76,14 @@ def _():
         "Use Group",
         "Use Header",
         "Use Name",
-        "Use Name Full",
         "Use NAICS Code",
         "NAICS Notes",
         "NAICS to subtract",
+        "NAICS_Type",
     ]
     columns_to_ignore = [
+        "Use Name Full",
         "PRC",
-        "NAICS_Type",
     ]
     return columns_to_ignore, id_columns
 
@@ -134,10 +134,11 @@ def _():
 def _(PERMITTED_CHARACTERS):
     def parse_permitted_value(row: pd.Series) -> list:
         for character in PERMITTED_CHARACTERS.keys():
+            permitted_column_name = PERMITTED_CHARACTERS[character]
             if character in row["Permitted Value"]:
-                row[PERMITTED_CHARACTERS[character]] = True
+                row[permitted_column_name] = True
             else:
-                row[PERMITTED_CHARACTERS[character]] = False
+                row[permitted_column_name] = False
         return row
     return (parse_permitted_value,)
 
@@ -153,7 +154,7 @@ def _(parse_permitted_value, use_groups_zoning_districts):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""### Create "Is Allowed" column""")
+    mo.md(r"""### Create "Is Allowed" and "Is Allowed flag" columns""")
     return
 
 
@@ -202,13 +203,21 @@ def _(use_groups_district_allowances):
 
 @app.cell
 def _(use_groups_district_allowances):
+    use_groups_district_allowances[
+        "Is Allowed flag"
+    ] = ~use_groups_district_allowances["Not permitted"]
+    return
+
+
+@app.cell
+def _(use_groups_district_allowances):
     use_groups_district_allowances
     return
 
 
 @app.cell
 def _(use_groups_district_allowances):
-    use_groups_district_allowances["Is Allowed"].value_counts()
+    use_groups_district_allowances.value_counts("Is Allowed", "Is Allowed flag")
     return
 
 
@@ -408,27 +417,35 @@ def _(
     def add_zr_links(df_input: pd.DataFrame) -> pd.DataFrame:
         df_output = df_input.copy()
         numerals = r"\b[IVX]+\b"
+
         for index, row in df_output.iterrows():
             if row["Zoning District"][:1] == "R":
                 if row["Permitted with limitations"] == True:
                     try:
-                        df_output.loc[index, "Permitted with limitations"] = (
+                        df_output.loc[index, "Limitations"] = (
                             residential_dist_reg_links[
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - limited appl"
                             ]
                         )
                     except KeyError:
-                        df_output.loc[index, "Permitted with limitations"] = (
+                        df_output.loc[index, "Limitations"] = (
                             residential_dist_reg_links[
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
                             ]
                         )
-                elif row["Permitted with limitations"] == False:
-                    df_output.loc[index, "Permitted with limitations"] = ""
-
-                if row["Permitted with limitations*"] == False:
-                    df_output.loc[index, "Permitted with limitations*"] = ""
-
+                if row["Permitted with limitations*"] == True:
+                    try:
+                        df_output.loc[index, "Limitations"] = (
+                            residential_dist_reg_links[
+                                f"UG{re.findall(numerals, row['Use Group'])[0]} - limited appl"
+                            ]
+                        )
+                    except KeyError:
+                        df_output.loc[index, "Limitations"] = (
+                            residential_dist_reg_links[
+                                f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
+                            ]
+                        )
                 if row["Special permit required"] == True:
                     try:
                         df_output.loc[index, "Special permit required"] = (
@@ -442,9 +459,6 @@ def _(
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
                             ]
                         )
-                elif row["Special permit required"] == False:
-                    df_output.loc[index, "Special permit required"] = ""
-
                 if row["Size restriction"] == True:
                     try:
                         df_output.loc[index, "Size restriction"] = (
@@ -458,9 +472,6 @@ def _(
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
                             ]
                         )
-                elif row["Size restriction"] == False:
-                    df_output.loc[index, "Size restriction"] = ""
-
                 if row["Additional conditions"] == True:
                     try:
                         df_output.loc[index, "Additional conditions"] = (
@@ -474,9 +485,6 @@ def _(
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
                             ]
                         )
-                elif row["Additional conditions"] == False:
-                    df_output.loc[index, "Additional conditions"] = ""
-
                 if row["Open use allowances"] == True:
                     try:
                         df_output.loc[index, "Open use allowances"] = (
@@ -490,29 +498,34 @@ def _(
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
                             ]
                         )
-                elif row["Open use allowances"] == False:
-                    df_output.loc[index, "Open use allowances"] = ""
 
             elif row["Zoning District"][:1] == "C":
                 if row["Permitted with limitations"] == True:
                     try:
-                        df_output.loc[index, "Permitted with limitations"] = (
+                        df_output.loc[index, "Limitations"] = (
                             commercial_dist_reg_links[
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - limited appl"
                             ]
                         )
                     except KeyError:
-                        df_output.loc[index, "Permitted with limitations"] = (
+                        df_output.loc[index, "Limitations"] = (
                             commercial_dist_reg_links[
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
                             ]
                         )
-                elif row["Permitted with limitations"] == False:
-                    df_output.loc[index, "Permitted with limitations"] = ""
-
-                if row["Permitted with limitations*"] == False:
-                    df_output.loc[index, "Permitted with limitations*"] = ""
-
+                if row["Permitted with limitations*"] == True:
+                    try:
+                        df_output.loc[index, "Limitations"] = (
+                            commercial_dist_reg_links[
+                                f"UG{re.findall(numerals, row['Use Group'])[0]} - limited appl"
+                            ]
+                        )
+                    except KeyError:
+                        df_output.loc[index, "Limitations"] = (
+                            commercial_dist_reg_links[
+                                f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
+                            ]
+                        )
                 if row["Special permit required"] == True:
                     try:
                         df_output.loc[index, "Special permit required"] = (
@@ -526,9 +539,6 @@ def _(
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
                             ]
                         )
-                elif row["Special permit required"] == False:
-                    df_output.loc[index, "Special permit required"] = ""
-
                 if row["Size restriction"] == True:
                     try:
                         df_output.loc[index, "Size restriction"] = (
@@ -542,9 +552,6 @@ def _(
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
                             ]
                         )
-                elif row["Size restriction"] == False:
-                    df_output.loc[index, "Size restriction"] = ""
-
                 if row["Additional conditions"] == True:
                     try:
                         df_output.loc[index, "Additional conditions"] = (
@@ -558,9 +565,6 @@ def _(
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
                             ]
                         )
-                elif row["Additional conditions"] == False:
-                    df_output.loc[index, "Additional conditions"] = ""
-
                 if row["Open use allowances"] == True:
                     try:
                         df_output.loc[index, "Open use allowances"] = (
@@ -574,42 +578,34 @@ def _(
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
                             ]
                         )
-                elif row["Open use allowances"] == False:
-                    df_output.loc[index, "Open use allowances"] = ""
 
             elif row["Zoning District"][:1] == "M":
                 if row["Permitted with limitations"] == True:
                     try:
-                        df_output.loc[index, "Permitted with limitations"] = (
+                        df_output.loc[index, "Limitations"] = (
                             manufacturing_dist_reg_links[
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - limited appl"
                             ]
                         )
                     except KeyError:
-                        df_output.loc[index, "Permitted with limitations"] = (
+                        df_output.loc[index, "Limitations"] = (
                             manufacturing_dist_reg_links[
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
                             ]
                         )
-                elif row["Permitted with limitations"] == False:
-                    df_output.loc[index, "Permitted with limitations"] = ""
-
                 if row["Permitted with limitations*"] == True:
                     try:
-                        df_output.loc[index, "Permitted with limitations*"] = (
+                        df_output.loc[index, "Limitations"] = (
                             manufacturing_dist_reg_links[
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - limited appl"
                             ]
                         )
                     except KeyError:
-                        df_output.loc[index, "Permitted with limitations*"] = (
+                        df_output.loc[index, "Limitations"] = (
                             manufacturing_dist_reg_links[
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
                             ]
                         )
-                elif row["Permitted with limitations*"] == False:
-                    df_output.loc[index, "Permitted with limitations*"] = ""
-
                 if row["Special permit required"] == True:
                     try:
                         df_output.loc[index, "Special permit required"] = (
@@ -623,9 +619,6 @@ def _(
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
                             ]
                         )
-                elif row["Special permit required"] == False:
-                    df_output.loc[index, "Special permit required"] = ""
-
                 if row["Size restriction"] == True:
                     try:
                         df_output.loc[index, "Size restriction"] = (
@@ -639,9 +632,6 @@ def _(
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
                             ]
                         )
-                elif row["Size restriction"] == False:
-                    df_output.loc[index, "Size restriction"] = ""
-
                 if row["Additional conditions"] == True:
                     try:
                         df_output.loc[index, "Additional conditions"] = (
@@ -655,9 +645,6 @@ def _(
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
                             ]
                         )
-                elif row["Additional conditions"] == False:
-                    df_output.loc[index, "Additional conditions"] = ""
-
                 if row["Open use allowances"] == True:
                     try:
                         df_output.loc[index, "Open use allowances"] = (
@@ -671,8 +658,6 @@ def _(
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
                             ]
                         )
-                elif row["Open use allowances"] == False:
-                    df_output.loc[index, "Open use allowances"] = ""
 
         return df_output
     return (add_zr_links,)
@@ -777,7 +762,7 @@ def _():
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""## Load NAICS codes""")
+    mo.md(r"""## Load NAICS codes and code groups""")
     return
 
 
@@ -790,11 +775,11 @@ def _():
 
 @app.cell
 def _():
-    naics_codes_new_raw = pd.read_excel(
+    six_digit_codes_raw = pd.read_excel(
         RESOURCES_DIRECTORY / "2022_NAICS_Index_File.xlsx", dtype=str
     )
-    naics_codes_new_raw
-    return (naics_codes_new_raw,)
+    six_digit_codes_raw
+    return (six_digit_codes_raw,)
 
 
 @app.cell(hide_code=True)
@@ -817,7 +802,7 @@ def _(code_groups_raw):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""### Create digit code columns (or "Join industry groups to 6-digit codes"?)""")
+    mo.md(r"""## Join code groups to six-digit codes""")
     return
 
 
@@ -826,12 +811,6 @@ def get_code_group_digits(code: str, digit_number: int) -> str:
     if len(code) < digit_number:
         return np.nan
     return code[:digit_number]
-
-
-@app.cell
-def _(naics_codes_new_raw):
-    six_digit_codes = naics_codes_new_raw.copy()
-    return (six_digit_codes,)
 
 
 @app.cell
@@ -872,111 +851,27 @@ def _(code_groups_cleaned):
     return
 
 
-@app.cell(hide_code=True)
-def _():
-    mo.md(r"""### merge experiments""")
-    return
-
-
 @app.cell
-def _(six_digit_codes):
-    six_digit_codes
-    return
-
-
-@app.cell
-def _(six_digit_codes):
-    word_to_number = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5}
-
-    all_codes = six_digit_codes.copy()
-    all_codes["six_digit_code"] = all_codes["NAICS22"]
-
-    for column_prefix, digits in word_to_number.items():
-        all_codes[f"{column_prefix}_digit_code"] = all_codes["NAICS22"].apply(
-            get_code_group_digits, digit_number=digits
-        )
-
-    all_codes
-    return all_codes, word_to_number
-
-
-@app.cell
-def _(all_codes, code_groups_cleaned):
-    all_codes_merged = all_codes.merge(
-        code_groups_cleaned[["2022 NAICS US Title", "code original"]],
-        how="left",
-        left_on="six_digit_code",
-        right_on="code original",
-    )
-    all_codes_merged.rename(
-        columns={
-            "2022 NAICS US Title": "six_digit_group_title",
-            "code original": "six_digit_title",
-        },
-        inplace=True,
-    )
-
-    all_codes_merged = all_codes_merged.merge(
-        code_groups_cleaned[["2022 NAICS US Title", "code original"]],
-        how="left",
-        left_on="five_digit_code",
-        right_on="code original",
-    )
-    all_codes_merged.rename(
-        columns={
-            "2022 NAICS US Title": "five_digit_group_title",
-            "code original": "five_digit_title",
-        },
-        inplace=True,
-    )
-
-    all_codes_merged = all_codes_merged.merge(
-        code_groups_cleaned[["2022 NAICS US Title", "code original"]],
-        how="left",
-        left_on="four_digit_code",
-        right_on="code original",
-    )
-    all_codes_merged.rename(
-        columns={
-            "2022 NAICS US Title": "four_digit_group_title",
-            "code original": "four_digit_title",
-        },
-        inplace=True,
-    )
-
-    all_codes_merged = all_codes_merged.merge(
-        code_groups_cleaned[["2022 NAICS US Title", "code original"]],
-        how="left",
-        left_on="three_digit_code",
-        right_on="code original",
-    )
-    all_codes_merged.rename(
-        columns={
-            "2022 NAICS US Title": "three_digit_group_title",
-            "code original": "three_digit_title",
-        },
-        inplace=True,
-    )
-
-    all_codes_merged
-    return (all_codes_merged,)
-
-
-@app.cell
-def _(all_codes_merged):
-    all_codes_merged
-    return
-
-
-@app.cell
-def _(code_groups_cleaned, word_to_number):
-    def merge_all_use_groups(six_digit_codes: pd.DataFrame, code_groups: pd.DataFrame) -> pd.DataFrame:
+def _(code_groups_cleaned):
+    def merge_all_use_groups(
+        six_digit_codes: pd.DataFrame, code_groups: pd.DataFrame
+    ) -> pd.DataFrame:
+        word_to_number = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5}
+    
+        six_digit_codes["six_digit_code"] = six_digit_codes["NAICS22"]
+    
+        for column_prefix, digits in word_to_number.items():
+            six_digit_codes[f"{column_prefix}_digit_code"] = six_digit_codes["NAICS22"].apply(
+                get_code_group_digits, digit_number=digits
+            )
+    
         all_codes_merged = six_digit_codes.merge(
             code_groups[["code original", "2022 NAICS US Title"]],
             how="left",
             left_on="six_digit_code",
             right_on="code original",
         )
+    
         all_codes_merged.rename(
             columns={
                 "INDEX ITEM DESCRIPTION": "NAICS22 Title",
@@ -985,8 +880,8 @@ def _(code_groups_cleaned, word_to_number):
             },
             inplace=True,
         )
+
         for digit_word in word_to_number.keys():
-            print(digit_word)
             all_codes_merged = all_codes_merged.merge(
                 code_groups_cleaned[["code original", "2022 NAICS US Title"]],
                 how="left",
@@ -1005,16 +900,10 @@ def _(code_groups_cleaned, word_to_number):
 
 
 @app.cell
-def _(all_codes, code_groups_cleaned, merge_all_use_groups):
-    use_grouped_merged = merge_all_use_groups(all_codes, code_groups_cleaned)
+def _(code_groups_cleaned, merge_all_use_groups, six_digit_codes_raw):
+    use_grouped_merged = merge_all_use_groups(six_digit_codes_raw, code_groups_cleaned)
     use_grouped_merged
     return (use_grouped_merged,)
-
-
-@app.cell
-def _():
-    # all_codes_merged[all_codes_merged["code original"].isnull()]
-    return
 
 
 @app.cell
@@ -1104,7 +993,15 @@ def _(code_groups_cleaned):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""Not all not Use Groups have declared associations with NAICS codes""")
+    mo.md(
+        r"""Not all not Use Groups have declared associations with NAICS codes"""
+    )
+    return
+
+
+@app.cell
+def _(use_groups):
+    use_groups[use_groups["Use NAICS Code"].isna()]
     return
 
 
@@ -1117,7 +1014,9 @@ def _(use_groups):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""Do all NAICS codes in Use Group data appear in the NAICS code data?""")
+    mo.md(
+        r"""Do all NAICS codes in Use Group data appear in the NAICS code data?"""
+    )
     return
 
 
@@ -1147,7 +1046,9 @@ def _(uses_codes_joined_no_join):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""NACICS values in Use Group data that are lists can't simply be joined to the NAICS Codes data""")
+    mo.md(
+        r"""NACICS values in Use Group data that are lists can't simply be joined to the NAICS Codes data"""
+    )
     return
 
 
@@ -1171,7 +1072,9 @@ def _(uses_codes_joined):
 
 @app.cell
 def _():
-    mo.md(r"""Can three-digit codes from Use Group data be linked to all relevant NAICS codes?""")
+    mo.md(
+        r"""Can three-digit codes from Use Group data be linked to all relevant NAICS codes?"""
+    )
     return
 
 
