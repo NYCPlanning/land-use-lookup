@@ -25,3 +25,48 @@ A user can select a NAICS category and determine which zoning districts allow th
 A user can select a zoning district and determine which NAICS categories are allowed on that land.
 
 1. ...
+
+## Development
+
+### Setup
+
+> [!IMPORTANT]
+> `uv` is the preferred python environment and package manager ([install docs](https://github.com/astral-sh/uv/?tab=readme-ov-file#installation)) but everything here is possible with `pip`.
+
+1. Create a virtual environment with `uv venv`
+2. (Optional) Recompile python package requirements with `uv pip compile --upgrade requirements.in -o requirements.txt`
+3. Run `uv pip sync requirements.txt` to ensure virtual environment has desired packages and their versions
+4. Activate the virtual environment with `source .venv/bin/activate`
+
+### Notebooks
+
+`marimo` [docs](https://docs.marimo.io/)
+
+```bash
+# Open a notebook
+marimo edit process_data.py
+# Open a notebook in app mode
+marimo app query.py
+```
+
+### Miscellaneous
+
+Formatting files:
+
+```bash
+# Format all files in a folder
+ruff format utils/
+# Format a specific file
+ruff format utils/query.py
+```
+
+Running tests:
+
+```bash
+# Run all tests
+python -m pytest
+# Run all tests in a file
+python -m pytest test/test_utils.py
+# Run a specific test
+python -m pytest test/test_utils.py::test_query_naics_codes
+```
