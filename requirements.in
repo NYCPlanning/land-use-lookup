@@ -6,3 +6,4 @@ mypy
 openpyxl
 pandas
 pyarrow
+pytest
