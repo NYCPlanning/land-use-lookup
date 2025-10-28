@@ -9,8 +9,6 @@ anyio==4.10.0
     #   httpx
     #   openai
     #   starlette
-appnope==0.1.4
-    # via ipykernel
 asttokens==3.0.0
     # via stack-data
 attrs==25.3.0
@@ -104,7 +102,7 @@ loro==1.6.0
     # via marimo
 lsprotocol==2025.0.0
     # via python-lsp-ruff
-marimo==0.15.5
+marimo[lsp,recommended]==0.15.5
     # via -r requirements.in
 markdown==3.9
     # via
@@ -160,7 +158,7 @@ platformdirs==4.4.0
     #   jupyter-core
 pluggy==1.6.0
     # via python-lsp-server
-polars==1.33.1
+polars[pyarrow]==1.33.1
     # via marimo
 prompt-toolkit==3.0.52
     # via ipython
@@ -231,7 +229,7 @@ sqlglot==27.14.0
     # via marimo
 stack-data==0.6.3
     # via ipython
-starlette==0.48.0
+starlette==0.49.1
     # via marimo
 tomlkit==0.13.3
     # via marimo
@@ -251,7 +249,6 @@ traitlets==5.14.3
     #   nbformat
 typing-extensions==4.15.0
     # via
-    #   altair
     #   cattrs
     #   docstring-to-markdown
     #   mypy
