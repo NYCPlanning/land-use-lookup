@@ -10,7 +10,7 @@ with app.setup:
     import pandas as pd
     import re
 
-    RESOURCES_DIRECTORY = Path("./resources")
+    INPUT_DIRECTORY = Path("./input")
     OUTPUT_DIRECTORY = Path("./output")
 
 
@@ -29,7 +29,7 @@ def _():
 @app.cell
 def _():
     use_groups_raw = pd.read_excel(
-        RESOURCES_DIRECTORY / "Use Group Chart - Transposed All UGs.xlsx"
+        INPUT_DIRECTORY / "Use Group Chart - Complete Use List with NAICS.xlsx"
     )
     use_groups_raw
     return (use_groups_raw,)
@@ -71,20 +71,50 @@ def _():
 
 
 @app.cell
-def _():
-    id_columns = [
-        "Use Group",
-        "Use Header",
-        "Use Name",
-        "Use NAICS Code",
-        "NAICS Notes",
-        "NAICS to subtract",
-        "NAICS_Type",
+def _(use_groups_cleaned):
+    use_groups_cleaned[
+        use_groups_cleaned["Use Name"] != use_groups_cleaned["Use Name Full"]
+    ]
+    return
+
+
+@app.cell
+def _(use_groups_cleaned):
+    zoning_columns = [
+        "R1",
+        "R2",
+        "R3",
+        "R4",
+        "R5",
+        "R6",
+        "R7",
+        "R8",
+        "R9",
+        "R10",
+        "R11",
+        "R12",
+        "C1",
+        "C2",
+        "C3",
+        "C4",
+        "C5",
+        "C6",
+        "C7",
+        "C8",
+        "M1",
+        "M2",
+        "M3",
     ]
     columns_to_ignore = [
         "Use Name Full",
         "PRC",
     ]
+    id_columns = [
+        col
+        for col in use_groups_cleaned.columns.to_list()
+        if col not in zoning_columns and col not in columns_to_ignore
+    ]
+    id_columns
     return columns_to_ignore, id_columns
 
 
@@ -768,7 +798,7 @@ def _():
 
 @app.cell
 def _():
-    code_groups_raw = pd.read_csv(RESOURCES_DIRECTORY / "naics_codes.csv")
+    code_groups_raw = pd.read_csv(INPUT_DIRECTORY / "naics_codes.csv")
     code_groups_raw
     return (code_groups_raw,)
 
@@ -776,7 +806,7 @@ def _():
 @app.cell
 def _():
     six_digit_codes_raw = pd.read_excel(
-        RESOURCES_DIRECTORY / "2022_NAICS_Index_File.xlsx", dtype=str
+        INPUT_DIRECTORY / "2022_NAICS_Index_File.xlsx", dtype=str
     )
     six_digit_codes_raw
     return (six_digit_codes_raw,)
@@ -857,21 +887,21 @@ def _(code_groups_cleaned):
         six_digit_codes: pd.DataFrame, code_groups: pd.DataFrame
     ) -> pd.DataFrame:
         word_to_number = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5}
-    
+
         six_digit_codes["six_digit_code"] = six_digit_codes["NAICS22"]
-    
+
         for column_prefix, digits in word_to_number.items():
-            six_digit_codes[f"{column_prefix}_digit_code"] = six_digit_codes["NAICS22"].apply(
-                get_code_group_digits, digit_number=digits
-            )
-    
+            six_digit_codes[f"{column_prefix}_digit_code"] = six_digit_codes[
+                "NAICS22"
+            ].apply(get_code_group_digits, digit_number=digits)
+
         all_codes_merged = six_digit_codes.merge(
             code_groups[["code original", "2022 NAICS US Title"]],
             how="left",
             left_on="six_digit_code",
             right_on="code original",
         )
-    
+
         all_codes_merged.rename(
             columns={
                 "INDEX ITEM DESCRIPTION": "NAICS22 Title",
@@ -901,7 +931,9 @@ def _(code_groups_cleaned):
 
 @app.cell
 def _(code_groups_cleaned, merge_all_use_groups, six_digit_codes_raw):
-    use_grouped_merged = merge_all_use_groups(six_digit_codes_raw, code_groups_cleaned)
+    use_grouped_merged = merge_all_use_groups(
+        six_digit_codes_raw, code_groups_cleaned
+    )
     use_grouped_merged
     return (use_grouped_merged,)
 
