@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.16.2"
+__generated_with = "0.17.6"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -16,13 +16,17 @@ with app.setup:
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""# Process Use Group data""")
+    mo.md(r"""
+    # Process Use Group data
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""## Load use groups""")
+    mo.md(r"""
+    ## Load use groups
+    """)
     return
 
 
@@ -37,7 +41,9 @@ def _():
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""## Clean use groups""")
+    mo.md(r"""
+    ## Clean use groups
+    """)
     return
 
 
@@ -66,7 +72,9 @@ def _(use_groups_raw):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""### Parse zoning district values""")
+    mo.md(r"""
+    ### Parse zoning district values
+    """)
     return
 
 
@@ -140,7 +148,9 @@ def _(use_groups_zoning_districts):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""### Parse permitted values""")
+    mo.md(r"""
+    ### Parse permitted values
+    """)
     return
 
 
@@ -184,7 +194,9 @@ def _(parse_permitted_value, use_groups_zoning_districts):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""### Create "Is Allowed" and "Is Allowed flag" columns""")
+    mo.md(r"""
+    ### Create "Is Allowed" and "Is Allowed flag" columns
+    """)
     return
 
 
@@ -261,7 +273,9 @@ def _(use_groups_district_allowances):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""### Parse Use NAICS Code values""")
+    mo.md(r"""
+    ### Parse Use NAICS Code values
+    """)
     return
 
 
@@ -298,13 +312,11 @@ def _(use_groups_naics_codes):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     ### Add ZR links
 
     For additional conditions, size limitations, etc.
-    """
-    )
+    """)
     return
 
 
@@ -712,7 +724,9 @@ def _(use_groups_zr_links):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""## Export processed Use Group data""")
+    mo.md(r"""
+    ## Export processed Use Group data
+    """)
     return
 
 
@@ -786,13 +800,17 @@ def _(use_groups_output_excel):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""# Proces NAICS codes""")
+    mo.md(r"""
+    # Proces NAICS codes
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""## Load NAICS codes and code groups""")
+    mo.md(r"""
+    ## Load NAICS codes and code groups
+    """)
     return
 
 
@@ -814,7 +832,9 @@ def _():
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""## Clean NAICS codes""")
+    mo.md(r"""
+    ## Clean NAICS codes
+    """)
     return
 
 
@@ -832,7 +852,9 @@ def _(code_groups_raw):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""## Join code groups to six-digit codes""")
+    mo.md(r"""
+    ## Join code groups to six-digit codes
+    """)
     return
 
 
@@ -985,7 +1007,9 @@ def _(naics_codes_output):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""## Export processed NAICS codes""")
+    mo.md(r"""
+    ## Export processed NAICS codes
+    """)
     return
 
 
@@ -999,7 +1023,9 @@ def _(naics_codes_output):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""# Explore Use Group data""")
+    mo.md(r"""
+    # Explore Use Group data
+    """)
     return
 
 
@@ -1012,7 +1038,9 @@ def _(use_groups_output):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""# Explore Use Group and NAICS overlap""")
+    mo.md(r"""
+    # Explore Use Group and NAICS overlap
+    """)
     return
 
 
@@ -1025,9 +1053,9 @@ def _(code_groups_cleaned):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""Not all not Use Groups have declared associations with NAICS codes"""
-    )
+    mo.md(r"""
+    Not all not Use Groups have declared associations with NAICS codes
+    """)
     return
 
 
@@ -1046,9 +1074,9 @@ def _(use_groups):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""Do all NAICS codes in Use Group data appear in the NAICS code data?"""
-    )
+    mo.md(r"""
+    Do all NAICS codes in Use Group data appear in the NAICS code data?
+    """)
     return
 
 
@@ -1078,15 +1106,17 @@ def _(uses_codes_joined_no_join):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""NACICS values in Use Group data that are lists can't simply be joined to the NAICS Codes data"""
-    )
+    mo.md(r"""
+    NACICS values in Use Group data that are lists can't simply be joined to the NAICS Codes data
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""## Look at specific use groups""")
+    mo.md(r"""
+    ## Look at specific use groups
+    """)
     return
 
 
@@ -1104,9 +1134,9 @@ def _(uses_codes_joined):
 
 @app.cell
 def _():
-    mo.md(
-        r"""Can three-digit codes from Use Group data be linked to all relevant NAICS codes?"""
-    )
+    mo.md(r"""
+    Can three-digit codes from Use Group data be linked to all relevant NAICS codes?
+    """)
     return
 
 
@@ -1121,7 +1151,9 @@ def _(naics_codes, uses_codes_joined_use_district_focus):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""## Look at specific zoning districts""")
+    mo.md(r"""
+    ## Look at specific zoning districts
+    """)
     return
 
 
