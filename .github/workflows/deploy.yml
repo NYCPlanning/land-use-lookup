@@ -25,7 +25,7 @@ jobs:
 
           - name: 📄 Export notebook
             run: |
-                uvx --verbose marimo export html-wasm --sandbox --mode run query.py -o _site_directory
+                uvx --verbose marimo export html-wasm --mode run query.py -o _site_directory
 
           - name: 📄 Copy data files
             run: |
