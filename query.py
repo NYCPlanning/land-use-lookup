@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.15.3"
+__generated_with = "0.17.6"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -8,6 +8,7 @@ with app.setup:
     import pandas as pd
     import polars as pl
     import pyarrow
+    from utils.query import query_naics_codes
 
     # Using mo.notebook_location() to access data both locally and when running via WebAssembly (e.g. hosted on GitHub Pages)
     SOURCE_DATA_DIRECTORY = mo.notebook_location() / "output" / "for_query_tool"
@@ -15,14 +16,15 @@ with app.setup:
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""# THIS IS AN EXPERIMENTAL TEST APPLICATION""")
+    mo.md(r"""
+    # THIS IS AN EXPERIMENTAL TEST APPLICATION
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     # Use Query Tool
 
     This tool helps users identify permitted uses for parcels of land in New York City. It is based on the NYC Department of City Planning's [Zoning Resolution](https://zoningresolution.planning.nyc.gov/) and the [North American Industry Classification System](https://www.census.gov/naics/?99967) (NAICS).
@@ -31,33 +33,34 @@ def _():
 
     1. **Query by zoning district** to find which types of business are allowed in a certain zoning district
     2. **Query by NAICS industry** to find which zoning districts allow a certain industry type
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""---""")
+    mo.md(r"""
+    ---
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""This tool uses two tables:""")
+    mo.md(r"""
+    This tool uses two tables:
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     ### Uses by Zoning District
 
     - one row per use and zoning distrcit
     - columns related to the use and the allowance details for the zoning district
-    """
-    )
+    """)
     return
 
 
@@ -75,14 +78,12 @@ def _():
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     ### NAICS Codes
 
     - one row per 6-digit industry code
     - columns related the code and it's industry groups
-    """
-    )
+    """)
     return
 
 
@@ -99,26 +100,28 @@ def _():
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     **DISCLAIMERS**
 
     - Not all uses in the Zoning Resolution with designated NAICS code have been parsed for use in this tool yet.
     - Some uses in the Zoning Resolution do not have designated NAICS codes and cannot be easily queried by this tool. For such uses, use the Search feature in the two tables above and manually compare the relevant NAICS title(s) to the use name(s).
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""----""")
+    mo.md(r"""
+    ----
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def section_query_by_district():
-    mo.md(r"""## Query uses by zoning district""")
+    mo.md(r"""
+    ## Query uses by zoning district
+    """)
     return
 
 
@@ -143,100 +146,107 @@ def _(dropdown_district, uses_by_zoning_district):
     return (district_uses_focus,)
 
 
-@app.function
-def find_permitted_naics_codes(
-    district_uses: pd.DataFrame,
-    naics_codes: pd.DataFrame,
-) -> pd.DataFrame:
-    permitted_district_uses = district_uses[~district_uses["Not permitted"]]
-    permitted_use_codes = (
-        permitted_district_uses["Use NAICS Code"]
-        .dropna()
-        .sort_values()
-        .reset_index(drop=True)
-    )
-    # district uses may have a comma-separated list of codes
-    split_values = permitted_use_codes.str.split(",")
-    permitted_use_codes = pd.Series(
-        [item for sublist in split_values for item in sublist]
-    )
-    # TODO handle the NAICS to subtract values
+@app.cell
+def _():
+    # def find_permitted_naics_codes(
+    #     district_uses: pd.DataFrame,
+    #     naics_codes: pd.DataFrame,
+    # ) -> pd.DataFrame:
+    #     permitted_district_uses = district_uses[~district_uses["Not permitted"]]
+    #     permitted_use_codes = (
+    #         permitted_district_uses["Use NAICS Code"]
+    #         .dropna()
+    #         .sort_values()
+    #         .reset_index(drop=True)
+    #     )
+    #     # district uses may have a comma-separated list of codes
+    #     split_values = permitted_use_codes.str.split(",")
+    #     permitted_use_codes = pd.Series(
+    #         [item for sublist in split_values for item in sublist]
+    #     )
+    #     # TODO handle the NAICS to subtract values
 
-    # district uses may have no code or a code with 6 to 3 digits
-    use_codes_six_digits = permitted_use_codes[
-        permitted_use_codes.str.len() == 6
-    ].reset_index(drop=True)
-    use_codes_five_digits = permitted_use_codes[
-        permitted_use_codes.str.len() == 5
-    ].reset_index(drop=True)
-    use_codes_four_digits = permitted_use_codes[
-        permitted_use_codes.str.len() == 4
-    ].reset_index(drop=True)
-    use_codes_three_digits = permitted_use_codes[
-        permitted_use_codes.str.len() == 3
-    ].reset_index(drop=True)
+    #     # district uses may have no code or a code with 6 to 3 digits
+    #     use_codes_six_digits = permitted_use_codes[
+    #         permitted_use_codes.str.len() == 6
+    #     ].reset_index(drop=True)
+    #     use_codes_five_digits = permitted_use_codes[
+    #         permitted_use_codes.str.len() == 5
+    #     ].reset_index(drop=True)
+    #     use_codes_four_digits = permitted_use_codes[
+    #         permitted_use_codes.str.len() == 4
+    #     ].reset_index(drop=True)
+    #     use_codes_three_digits = permitted_use_codes[
+    #         permitted_use_codes.str.len() == 3
+    #     ].reset_index(drop=True)
 
-    six_digit_search = (
-        naics_codes[naics_codes["NAICS Code"].isin(use_codes_six_digits)]
-        .sort_values(by="NAICS Code")
-        .reset_index(drop=True)
-    )
-    six_digit_search["Permitted reason"] = "NAICS Code"
-    six_digit_search["Permitted value"] = six_digit_search["NAICS Code"]
-    five_digit_search = (
-        naics_codes[
-            naics_codes["Five-digit Group Code"].isin(use_codes_five_digits)
-        ]
-        .sort_values(by="Five-digit Group Code")
-        .reset_index(drop=True)
-    )
-    five_digit_search["Permitted reason"] = "Five-digit Group Code"
-    five_digit_search["Permitted value"] = five_digit_search[
-        "Five-digit Group Code"
-    ]
-    four_digit_search = (
-        naics_codes[
-            naics_codes["Four-digit Group Code"].isin(use_codes_four_digits)
-        ]
-        .sort_values(by="Four-digit Group Code")
-        .reset_index(drop=True)
-    )
-    four_digit_search["Permitted reason"] = "Four-digit Group Code"
-    four_digit_search["Permitted value"] = four_digit_search[
-        "Four-digit Group Code"
-    ]
-    three_digit_search = (
-        naics_codes[
-            naics_codes["Three-digit Group Code"].isin(use_codes_three_digits)
-        ]
-        .sort_values(by="Three-digit Group Code")
-        .reset_index(drop=True)
-    )
-    three_digit_search["Permitted reason"] = "Three-digit Group Code"
-    three_digit_search["Permitted value"] = three_digit_search[
-        "Three-digit Group Code"
-    ]
+    #     six_digit_search = (
+    #         naics_codes[naics_codes["NAICS Code"].isin(use_codes_six_digits)]
+    #         .sort_values(by="NAICS Code")
+    #         .reset_index(drop=True)
+    #     )
+    #     six_digit_search["Permitted reason"] = "NAICS Code"
+    #     six_digit_search["Permitted value"] = six_digit_search["NAICS Code"]
+    #     five_digit_search = (
+    #         naics_codes[
+    #             naics_codes["Five-digit Group Code"].isin(use_codes_five_digits)
+    #         ]
+    #         .sort_values(by="Five-digit Group Code")
+    #         .reset_index(drop=True)
+    #     )
+    #     five_digit_search["Permitted reason"] = "Five-digit Group Code"
+    #     five_digit_search["Permitted value"] = five_digit_search[
+    #         "Five-digit Group Code"
+    #     ]
+    #     four_digit_search = (
+    #         naics_codes[
+    #             naics_codes["Four-digit Group Code"].isin(use_codes_four_digits)
+    #         ]
+    #         .sort_values(by="Four-digit Group Code")
+    #         .reset_index(drop=True)
+    #     )
+    #     four_digit_search["Permitted reason"] = "Four-digit Group Code"
+    #     four_digit_search["Permitted value"] = four_digit_search[
+    #         "Four-digit Group Code"
+    #     ]
+    #     three_digit_search = (
+    #         naics_codes[
+    #             naics_codes["Three-digit Group Code"].isin(use_codes_three_digits)
+    #         ]
+    #         .sort_values(by="Three-digit Group Code")
+    #         .reset_index(drop=True)
+    #     )
+    #     three_digit_search["Permitted reason"] = "Three-digit Group Code"
+    #     three_digit_search["Permitted value"] = three_digit_search[
+    #         "Three-digit Group Code"
+    #     ]
 
-    return pd.concat(
-        [
-            six_digit_search,
-            five_digit_search,
-            four_digit_search,
-            three_digit_search,
-        ]
-    ).reset_index(drop=True)
+    #     return pd.concat(
+    #         [
+    #             six_digit_search,
+    #             five_digit_search,
+    #             four_digit_search,
+    #             three_digit_search,
+    #         ]
+    #     ).reset_index(drop=True)
+    return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""### Permitted uses""")
+    mo.md(r"""
+    ### Permitted uses
+    """)
     return
 
 
 @app.cell
-def _(district_uses_focus, naics_codes):
-    permitted_use_codes = find_permitted_naics_codes(
-        district_uses_focus, naics_codes
+def _(dropdown_district, naics_codes, uses_by_zoning_district):
+    # permitted_use_codes = find_permitted_naics_codes(
+    #     district_uses_focus, naics_codes
+    # )
+    permitted_use_codes = query_naics_codes(
+        uses_by_zoning_district, dropdown_district.value, naics_codes
     )
     permitted_use_codes
     return (permitted_use_codes,)
@@ -244,7 +254,9 @@ def _(district_uses_focus, naics_codes):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""### Focus on a single permitted use""")
+    mo.md(r"""
+    ### Focus on a single permitted use
+    """)
     return
 
 
@@ -281,13 +293,17 @@ def _(district_uses_focus, permitted_use_codes_focus):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""----""")
+    mo.md(r"""
+    ----
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def section_query_by_naics():
-    mo.md(r"""## Query zoning districts by use""")
+    mo.md(r"""
+    ## Query zoning districts by use
+    """)
     return
 
 
@@ -321,7 +337,9 @@ def _(dropdown_naics_title, naics_codes):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""### Permitted zoning districts""")
+    mo.md(r"""
+    ### Permitted zoning districts
+    """)
     return
 
 

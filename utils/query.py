@@ -107,6 +107,7 @@ def exclude_naics_codes(
     permitted_use_codes: pd.DataFrame,
     district_uses: pd.DataFrame,
 ) -> pd.DataFrame:
+    # TODO add exclusion via column "NAICS index names to subtract"
     permitted_district_uses = district_uses[
         district_uses["Use NAICS Code"].isin(permitted_use_codes["Permitted value"])
     ]
