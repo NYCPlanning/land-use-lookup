@@ -23,7 +23,7 @@ jobs:
 
           - name: 📄 Export notebook
             run: |
-                uvx --verbose marimo export html-wasm --mode run query.py --output _site_directory
+                uvx --verbose marimo export html-wasm --mode run query_app.py --output _site_directory
 
           - name: 📄 Display all exported files
             run: |

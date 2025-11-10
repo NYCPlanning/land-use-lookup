@@ -28,6 +28,10 @@ A user can select a zoning district and determine which NAICS categories are all
 
 ## Development
 
+The app is a marimo notebook hosted on GitHub Pages.
+
+A github action converts the notebook to WASM HTML and deploys the page. The action is triggered by changes to the `main` branch but can be configured to use other branches via the repo's Environment settings.
+
 ### Setup
 
 > [!IMPORTANT]
@@ -46,7 +50,14 @@ A user can select a zoning district and determine which NAICS categories are all
 # Open a notebook
 marimo edit process_data.py
 # Open a notebook in app mode
-marimo app query.py
+marimo app query_app.py
+```
+
+```bash
+# Export to WASM HTML
+uvx --verbose marimo export html-wasm --mode run a_notebook.py --output _site_a_notebook
+# Run exported notebook
+python -m http.server --directory _site_a_notebook
 ```
 
 ### Miscellaneous
