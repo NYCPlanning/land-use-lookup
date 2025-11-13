@@ -1,3 +1,3 @@
 Use Group,Use Header,Use Name,Use NAICS Code,NAICS Notes,NAICS to subtract,NAICS_Type,Zoning District,Permitted Value,Not permitted,Permitted,Permitted with limitations,Permitted with limitations*,Special Permit,Size Restrictions,Additional Conditions,Open Use Allowances,Is Allowed
-X,Food Manufacturing (311),All other food manufacturing (in 311),311,"311 minus 3116, 3117","3116, 3117",3,M2,●P,False,True,False,False,False,False,https://zr.planning.nyc.gov/article-iv/chapter-2#42-202,False,"Yes, subject to additional conditions",False
-IV(A),Public Service Buildings,Fire or police stations,,,,0,M2,●,False,True,False,False,False,False,False,False,Yes,False
+X,Food Manufacturing (311),All other food manufacturing (in 311),311,"311 minus 3116, 3117","3116, 3117",3,M2,●P,False,True,False,False,False,False,https://zr.planning.nyc.gov/article-iv/chapter-2#42-202,False,"Yes, subject to additional conditions"
+IV(A),Public Service Buildings,Fire or police stations,,,,0,M2,●,False,True,False,False,False,False,False,False,Yes
