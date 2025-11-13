@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def find_permitted_naics_codes(
+def find_permitted_naics_indexes(
     district_uses: pd.DataFrame,
     naics_codes: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -11,16 +11,17 @@ def find_permitted_naics_codes(
     )
     permitted_district_uses = district_uses[~district_uses["Not permitted"]]
 
+    # "Use NAICS Code" values are NAICS index codes and are , delimited
     permitted_use_codes = (
         permitted_district_uses["Use NAICS Code"]
         .dropna()
         .sort_values()
         .reset_index(drop=True)
     )
-    # may have a comma-separated list of codes
+    # may have a comma-delimited list of codes
     split_permitted_use_codes = permitted_use_codes.str.split(",")
     permitted_use_codes = pd.Series(
-        [item for sublist in split_permitted_use_codes for item in sublist]
+        [item.strip() for sublist in split_permitted_use_codes for item in sublist]
     )
 
     # district uses may have no code or a code with 6 to 3 digits
@@ -66,23 +67,70 @@ def find_permitted_naics_codes(
     three_digit_search["Permitted reason"] = "Three-digit Group Code"
     three_digit_search["Permitted value"] = three_digit_search["Three-digit Group Code"]
 
+    # "NAICS index names to include" values are NAICS index titles and are ; delimited
+    if not "NAICS index names to include" in permitted_district_uses.columns:
+        name_search = pd.DataFrame()
+    else:
+        names_to_include = (
+            permitted_district_uses["NAICS index names to include"]
+            .dropna()
+            .sort_values()
+            .reset_index(drop=True)
+        )
+        # may have a semicolon-delimited list of codes
+        split_names_to_include = names_to_include.str.split(";")
+        names_to_include = pd.Series(
+            [item.strip() for sublist in split_names_to_include for item in sublist]
+        )
+
+        name_search = (
+            naics_codes[naics_codes["NAICS Title"].isin(names_to_include)]
+            .sort_values(by="NAICS Title")
+            .reset_index(drop=True)
+        )
+        name_search["Permitted reason"] = "NAICS Title"
+        name_search["Permitted value"] = name_search["NAICS Title"]
+
     permitted_values = pd.concat(
         [
             six_digit_search,
             five_digit_search,
             four_digit_search,
             three_digit_search,
+            name_search,
         ]
     ).reset_index(drop=True)
+
+    # Attach the original 'Is Allowed' value from the permitted district uses.
+    # Normalize the permitted use codes (they may be comma-separated) so we
+    # can join by the permitted value (which is the original Use NAICS Code).
+    # mapping = permitted_district_uses[["Use NAICS Code", "Is Allowed"]].copy()
+    mapping = permitted_district_uses.copy()
+    mapping.loc[:, "Use NAICS Code"] = (
+        mapping["Use NAICS Code"]
+        .astype(str)
+        .str.split(",")
+        .apply(lambda lst: [s.strip() for s in lst] if isinstance(lst, list) else lst)
+    )
+    mapping = mapping.explode("Use NAICS Code").reset_index(drop=True)
+
+    permitted_values = permitted_values.merge(
+        mapping,
+        how="left",
+        left_on="Permitted value",
+        right_on="Use NAICS Code",
+    )
 
     return permitted_values
 
 
-def explode_code_lists(df: pd.DataFrame, column_to_split: str) -> pd.DataFrame:
+def explode_delimited_lists(
+    df: pd.DataFrame, column_to_split: str, delimiter: str = ","
+) -> pd.DataFrame:
     # Split the column into lists and strip whitespace
     df.loc[:, column_to_split] = (
         df[column_to_split]
-        .str.split(",")
+        .str.split(delimiter)
         .apply(lambda lst: [s.strip() for s in lst] if isinstance(lst, list) else lst)
     )
     # Explode the column
@@ -107,13 +155,12 @@ def exclude_naics_codes(
     permitted_use_codes: pd.DataFrame,
     district_uses: pd.DataFrame,
 ) -> pd.DataFrame:
-    # TODO add exclusion via column "NAICS index names to subtract"
     permitted_district_uses = district_uses[
         district_uses["Use NAICS Code"].isin(permitted_use_codes["Permitted value"])
     ]
     # Split and explode comma-separated lists of codes
     exploded_exclusions = permitted_district_uses.pipe(
-        explode_code_lists, "NAICS to subtract"
+        explode_delimited_lists, "NAICS to subtract"
     ).dropna(subset=["NAICS to subtract"])
     # Explode 6-or-less-digit codes to lists of 6-digit codes
     exploded_exclusions["NAICS to subtract"] = exploded_exclusions[
@@ -141,7 +188,49 @@ def exclude_naics_codes(
     return reduced_use_codes
 
 
-def query_naics_codes(
+def exclude_naics_names(
+    permitted_use_codes: pd.DataFrame,
+    district_uses: pd.DataFrame,
+) -> pd.DataFrame:
+    permitted_district_uses = district_uses[
+        district_uses["Use NAICS Code"].isin(permitted_use_codes["Permitted value"])
+    ]
+    # Split and explode semicolon-separated lists of names
+    exploded_exclusions = permitted_district_uses.pipe(
+        explode_delimited_lists, "NAICS index names to subtract", ";"
+    ).dropna(subset=["NAICS index names to subtract"])
+    # After expanding each value to a list of 6-digit codes, explode those lists
+    # into individual rows so each row contains a single 6-digit code.
+    exploded_exclusions = exploded_exclusions.explode(
+        "NAICS index names to subtract"
+    ).reset_index(drop=True)
+
+    reduced_use_names_indicated = permitted_use_codes.merge(
+        exploded_exclusions,
+        how="left",
+        left_on=["NAICS Title", "Permitted value"],
+        right_on=["NAICS index names to subtract", "Use NAICS Code"],
+        indicator=True,
+        suffixes=(None, "_exclusions"),
+    )
+    # Filter for 'left_only' rows and drop the indicator column
+    reduced_use_names = reduced_use_names_indicated[
+        reduced_use_names_indicated["_merge"] == "left_only"
+    ][permitted_use_codes.columns.to_list()].reset_index(drop=True)
+
+    return reduced_use_names
+
+
+def get_district_uses_by_zr_use(
+    uses_by_zoning_district: pd.DataFrame,
+    use_name: str,
+) -> pd.DataFrame:
+    return uses_by_zoning_district[
+        uses_by_zoning_district["Use Name"] == use_name
+    ].reset_index(drop=True)
+
+
+def get_naics_indexes_by_district(
     uses_by_zoning_district: pd.DataFrame,
     zoning_distrct: str,
     naics_codes: pd.DataFrame,
@@ -149,6 +238,47 @@ def query_naics_codes(
     district_uses = uses_by_zoning_district[
         uses_by_zoning_district["Zoning District"] == zoning_distrct
     ]
-    return district_uses.pipe(find_permitted_naics_codes, naics_codes).pipe(
+    return district_uses.pipe(find_permitted_naics_indexes, naics_codes).pipe(
         exclude_naics_codes, district_uses
     )
+
+
+def get_district_uses_by_naics_index(
+    uses_by_zoning_district: pd.DataFrame,
+    naics_codes: pd.DataFrame,
+    naics_title: str,
+) -> pd.DataFrame:
+    naics_codes_single = naics_codes[naics_codes["NAICS Title"] == naics_title]
+    assert len(naics_codes_single) == 1, (
+        f"There should only be one NAICS index, not {len(naics_codes_single)}"
+    )
+    districts_results = []
+    districts = uses_by_zoning_district["Zoning District"].unique().tolist()
+    for district in districts:
+        district_result = get_naics_indexes_by_district(
+            uses_by_zoning_district, district, naics_codes_single
+        )
+        district_result["Zoning District"] = district
+        districts_results.append(district_result)
+
+    results = pd.concat(districts_results, ignore_index=True)
+    cols = [
+        "NAICS Code",
+        "NAICS Title",
+        "Zoning District",
+        "Not permitted",
+        "Is Allowed",
+        "Five-digit Group Code",
+        "Five-digit Group Title",
+        "Four-digit Group Code",
+        "Four-digit Group Title",
+        "Three-digit Group Code",
+        "Three-digit Group Title",
+        "Permitted reason",
+        "Permitted value",
+        "Use NAICS Code",
+    ]
+    # keep the specified columns first (only if they exist), then append any other columns in their current order
+    existing_first_cols = [c for c in cols if c in results.columns]
+    other_cols = [c for c in results.columns if c not in existing_first_cols]
+    return results.loc[:, existing_first_cols + other_cols]
