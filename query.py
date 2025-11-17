@@ -11,7 +11,7 @@ with app.setup:
     from utils.query import query_naics_codes
 
     # Using mo.notebook_location() to access data both locally and when running via WebAssembly (e.g. hosted on GitHub Pages)
-    SOURCE_DATA_DIRECTORY = mo.notebook_location() / "output" / "for_query_tool"
+    SOURCE_DATA_DIRECTORY = mo.notebook_location() / "public" / "data"
 
 
 @app.cell(hide_code=True)

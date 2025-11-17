@@ -16,22 +16,14 @@ jobs:
       runs-on: ubuntu-latest
 
       steps:
-          # Check out the repository code
           - uses: actions/checkout@v4
 
-          # Install uv package manager for faster Python package installation
           - name: 🚀 Install uv
             uses: astral-sh/setup-uv@v6
 
           - name: 📄 Export notebook
             run: |
-                uvx --verbose marimo export html-wasm --mode run query.py -o _site_directory
-
-          - name: 📄 Copy data files
-            run: |
-                mkdir -p _site_directory/output/for_query_tool/
-                mv output/for_query_tool/* _site_directory/output/for_query_tool/
-                tree _site_directory  # Display all exported files
+                uvx --verbose marimo export html-wasm --mode run query.py --output _site_directory
 
           - name: 📄 Display all exported files
             run: |
