@@ -70,3 +70,8 @@ python -m pytest test/test_utils.py
 # Run a specific test
 python -m pytest test/test_utils.py::test_query_naics_codes
 ```
+
+### Docs
+
+[marimo - WebAssembly Notebooks](https://docs.marimo.io/guides/wasm/)
+[marimo - Publish to GitHub Pages](https://docs.marimo.io/guides/publishing/github_pages/)
