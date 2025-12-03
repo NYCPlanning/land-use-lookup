@@ -4,7 +4,7 @@ altair==6.0.0
     # via marimo
 annotated-types==0.7.0
     # via pydantic
-anyio==4.11.0
+anyio==4.12.0
     # via
     #   google-genai
     #   httpx
@@ -64,7 +64,7 @@ fastjsonschema==2.21.2
     # via nbformat
 google-auth==2.43.0
     # via google-genai
-google-genai==1.52.0
+google-genai==1.53.0
     # via marimo
 h11==0.16.0
     # via
@@ -87,7 +87,7 @@ iniconfig==2.3.0
     # via pytest
 ipykernel==7.1.0
     # via -r requirements.in
-ipython==9.7.0
+ipython==9.8.0
     # via ipykernel
 ipython-pygments-lexers==1.1.1
     # via ipython
@@ -115,11 +115,13 @@ jupyter-core==5.9.1
     #   ipykernel
     #   jupyter-client
     #   nbformat
-loro==1.8.2
+librt==0.6.3
+    # via mypy
+loro==1.10.0
     # via marimo
 lsprotocol==2025.0.0
     # via python-lsp-ruff
-marimo==0.18.0
+marimo==0.18.2
     # via -r requirements.in
 markdown==3.10
     # via
@@ -131,15 +133,15 @@ matplotlib-inline==0.2.1
     # via
     #   ipykernel
     #   ipython
-msgspec-m==0.19.3
+msgspec==0.20.0
     # via marimo
-mypy==1.18.2
+mypy==1.19.0
     # via -r requirements.in
 mypy-extensions==1.1.0
     # via
     #   black
     #   mypy
-narwhals==2.12.0
+narwhals==2.13.0
     # via
     #   altair
     #   marimo
@@ -148,8 +150,10 @@ nbformat==5.10.4
 nest-asyncio==1.6.0
     # via ipykernel
 numpy==2.3.5
-    # via pandas
-openai==2.8.1
+    # via
+    #   pandas
+    #   pandas-stubs
+openai==2.9.0
     # via marimo
 openpyxl==3.1.5
     # via -r requirements.in
@@ -161,6 +165,8 @@ packaging==25.0
     #   marimo
     #   pytest
 pandas==2.3.3
+    # via -r requirements.in
+pandas-stubs==2.3.3.251201
     # via -r requirements.in
 parso==0.8.5
     # via jedi
@@ -202,7 +208,7 @@ pyasn1==0.6.1
     #   rsa
 pyasn1-modules==0.4.2
     # via google-auth
-pydantic==2.12.4
+pydantic==2.12.5
     # via
     #   google-genai
     #   openai
@@ -214,7 +220,7 @@ pygments==2.19.2
     #   ipython-pygments-lexers
     #   marimo
     #   pytest
-pymdown-extensions==10.17.1
+pymdown-extensions==10.17.2
     # via marimo
 pytest==9.0.1
     # via -r requirements.in
@@ -247,26 +253,26 @@ referencing==0.37.0
     #   jsonschema
     #   jsonschema-specifications
 requests==2.32.5
-    # via google-genai
-rpds-py==0.29.0
+    # via
+    #   google-auth
+    #   google-genai
+rpds-py==0.30.0
     # via
     #   jsonschema
     #   referencing
 rsa==4.9.1
     # via google-auth
-ruff==0.14.6
+ruff==0.14.8
     # via
     #   marimo
     #   python-lsp-ruff
 six==1.17.0
     # via python-dateutil
 sniffio==1.3.1
-    # via
-    #   anyio
-    #   openai
-sqlglot==28.0.0
+    # via openai
+sqlglot==28.1.0
     # via marimo
-sqlglotrs==0.7.3
+sqlglotrs==0.8.0
     # via sqlglot
 stack-data==0.6.3
     # via ipython
@@ -290,6 +296,8 @@ traitlets==5.14.3
     #   jupyter-core
     #   matplotlib-inline
     #   nbformat
+types-pytz==2025.2.0.20251108
+    # via pandas-stubs
 typing-extensions==4.15.0
     # via
     #   altair
