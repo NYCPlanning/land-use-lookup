@@ -8,12 +8,14 @@ with app.setup:
     import pandas as pd
     import polars as pl
 
-    from utils.query import (
+    from utils.query_helpers import (
         find_permitted_naics_indexes,
         explode_delimited_lists,
         explode_code,
         exclude_naics_codes,
         exclude_naics_names,
+    )
+    from utils.query import (
         get_naics_indexes_by_district,
         get_district_uses_by_zr_use,
         get_district_uses_by_naics_index,

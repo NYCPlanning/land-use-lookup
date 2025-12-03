@@ -348,7 +348,7 @@ def _(SOURCE_DATA_DIRECTORY, pl):
 
 @app.cell
 def _():
-    # utils below. copied from utils/query.py
+    # utils below are copied from the utils/ files because they can't be packaged and imported with the WASM notebook.
     return
 
 

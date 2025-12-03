@@ -1,13 +1,11 @@
 import numpy as np
 import pandas as pd
-from utils.query import (
+from utils.query_helpers import (
     find_permitted_naics_indexes,
     explode_delimited_lists,
     explode_code,
     exclude_naics_codes,
     exclude_naics_names,
-    get_naics_indexes_by_district,
-    get_district_uses_by_naics_index,
 )
 
 pd.set_option("display.max_columns", None)
@@ -228,147 +226,4 @@ def test_exclude_naics_names():
             ["1234", "123411", "An industry to keep"],
         ],
     )
-    pd.testing.assert_frame_equal(actual, expected)
-
-
-def test_query_naics_codes():
-    district_uses = pd.DataFrame(
-        columns=[
-            "Use Name",
-            "Use NAICS Code",
-            "NAICS to subtract",
-            "Zoning District",
-            "Not permitted",
-            "Is Allowed",
-        ],
-        data=[
-            ["A", "123", "12312, 123141", "A1", False, "Yes kinda"],
-            ["B", "456", "456", "A1", True, "No"],
-            ["A", "123", "12312, 123141", "A2", False, "Yes kinda"],
-            ["B", "456", "456", "A2", True, "No"],
-        ],
-    )
-
-    naics_codes = pd.DataFrame(
-        columns=[
-            "NAICS Code",
-            "Five-digit Group Code",
-            "Four-digit Group Code",
-            "Three-digit Group Code",
-        ],
-        data=[
-            ["123111", "12311", "1231", "123"],
-            ["123121", "12312", "1231", "123"],
-            ["123131", "12313", "1231", "123"],
-            ["123141", "12314", "1231", "123"],
-        ],
-    )
-    actual = get_naics_indexes_by_district(
-        district_uses,
-        "A1",
-        naics_codes,
-    )
-    assert actual["Is Allowed"].to_list() == ["Yes kinda", "Yes kinda"]
-    assert actual["NAICS Code"].to_list() == ["123111", "123131"]
-
-
-def test_query_naics_codes_mock(
-    mock_uses_by_zoning_district: pd.DataFrame, mock_naics_codes: pd.DataFrame
-):
-    actual = get_naics_indexes_by_district(
-        mock_uses_by_zoning_district,
-        "M2",
-        mock_naics_codes,
-    )
-    assert len(actual) == 733
-    assert len(actual[actual["NAICS Code"] == "311512"]) == 5
-    assert len(actual[actual["Four-digit Group Code"] == "3115"]) == 105
-    assert len(actual[actual["NAICS Code"] == "311611"]) == 0
-    assert len(actual[actual["Four-digit Group Code"] == "3116"]) == 0
-    assert len(actual[actual["Four-digit Group Code"] == "3117"]) == 0
-
-
-def test_get_district_uses_by_naics_index():
-    district_uses = pd.DataFrame(
-        columns=[
-            "Use NAICS Code",
-            "NAICS index names to include",
-            "NAICS to subtract",
-            "Zoning District",
-            "Not permitted",
-            "Is Allowed",
-        ],
-        data=[
-            ["123", "Shouldn't matter", "12312, 123141", "A1", False, "Yes"],
-            ["123", "Shouldn't matter", "12312, 123141", "A2", False, "Yes pretty much"],
-            ["456", "Shouldn't matter", "456", "A1", True, "No"],
-        ],
-    )
-    naics_codes = pd.DataFrame(
-        columns=[
-            "NAICS Code",
-            "NAICS Title",
-            "Five-digit Group Code",
-            "Four-digit Group Code",
-            "Three-digit Group Code",
-        ],
-        data=[
-            ["123111", "Allowed in both", "12311", "1231", "123"],
-            ["123112", "Something else", "12311", "1231", "123"],
-        ],
-    )
-    naics_title = "Allowed in both"
-
-    actual = get_district_uses_by_naics_index(district_uses, naics_codes, naics_title)
-    expected = pd.DataFrame(
-        columns=[
-            "NAICS Code",
-            "NAICS Title",
-            "Zoning District",
-            "Not permitted",
-            "Is Allowed",
-            "Five-digit Group Code",
-            "Four-digit Group Code",
-            "Three-digit Group Code",
-            "Permitted reason",
-            "Permitted value",
-            "Use NAICS Code",
-            "NAICS index names to include",
-            "NAICS to subtract",
-        ],
-        data=[
-            [
-                "123111",
-                "Allowed in both",
-                "A1",
-                False,
-                "Yes",
-                "12311",
-                "1231",
-                "123",
-                "Three-digit Group Code",
-                "123",
-                "123",
-                "Shouldn't matter",
-                "12312, 123141",
-            ],
-            [
-                "123111",
-                "Allowed in both",
-                "A2",
-                False,
-                "Yes pretty much",
-                "12311",
-                "1231",
-                "123",
-                "Three-digit Group Code",
-                "123",
-                "123",
-                "Shouldn't matter",
-                "12312, 123141",
-            ],
-        ],
-    )
-
-    print(actual.columns)
     pd.testing.assert_frame_equal(actual, expected)
