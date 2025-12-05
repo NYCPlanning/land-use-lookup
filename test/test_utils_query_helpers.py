@@ -76,7 +76,7 @@ def test_find_permitted_naics_indexes_names():
         data=[
             [
                 "123, 456 (select)",
-                "A 456 index to include; Another one",
+                "A 456 index to include; Not a 456 but include it",
                 "A1",
                 False,
                 "Yes",
@@ -115,7 +115,7 @@ def test_find_permitted_naics_indexes_names():
             ],
             [
                 "789111",
-                "Another one",
+                "Not a 456 but include it",
                 "78911",
                 "7891",
                 "789",
@@ -123,13 +123,14 @@ def test_find_permitted_naics_indexes_names():
         ],
     )
     actual = find_permitted_naics_indexes(district_uses, naics_codes)
-    assert actual["Use NAICS Code"].to_list() == ["123", np.nan, np.nan]
+    assert actual["Use NAICS Code"].to_list() == ["123", "456 (select)", "456 (select)"]
     assert actual["NAICS Code"].to_list() == ["123111", "456111", "789111"]
     assert actual["NAICS Title"].to_list() == [
         "Industry to include",
         "A 456 index to include",
-        "Another one",
+        "Not a 456 but include it",
     ]
+    assert actual["Is Allowed"].to_list() == ["Yes", "Yes", "Yes"]
 
 
 def test_explode_delimited_lists():

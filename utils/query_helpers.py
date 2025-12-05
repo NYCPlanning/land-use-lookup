@@ -67,6 +67,33 @@ def find_permitted_naics_indexes(
     three_digit_search["Permitted reason"] = "Three-digit Group Code"
     three_digit_search["Permitted value"] = three_digit_search["Three-digit Group Code"]
 
+    code_search = pd.concat(
+        [
+            six_digit_search,
+            five_digit_search,
+            four_digit_search,
+            three_digit_search,
+        ]
+    ).reset_index(drop=True)
+
+    # Build mapping by exploded Use NAICS Code so we can attach the original
+    # permitted district-use columns to each search result before concatenating.
+    mapping_codes = permitted_district_uses.copy()
+    mapping_codes.loc[:, "Use NAICS Code"] = (
+        mapping_codes["Use NAICS Code"]
+        .astype(str)
+        .str.split(",")
+        .apply(lambda lst: [s.strip() for s in lst] if isinstance(lst, list) else lst)
+    )
+    mapping_codes = mapping_codes.explode("Use NAICS Code").reset_index(drop=True)
+
+    code_search = code_search.merge(
+        mapping_codes,
+        how="left",
+        left_on="Permitted value",
+        right_on="Use NAICS Code",
+    )
+
     # "NAICS index names to include" values are NAICS index titles and are ; delimited
     if not "NAICS index names to include" in permitted_district_uses.columns:
         name_search = pd.DataFrame()
@@ -91,35 +118,56 @@ def find_permitted_naics_indexes(
         name_search["Permitted reason"] = "NAICS Title"
         name_search["Permitted value"] = name_search["NAICS Title"]
 
+        mapping_names = permitted_district_uses.copy()
+        # Build mapping by exploded NAICS index names to include (if present)
+        # Also explode any comma-delimited `Use NAICS Code` so each name mapping
+        # row refers to a single code (e.g. "456 (select)") when merging below.
+        # Explode `Use NAICS Code`, but drop short numeric codes (e.g., 3-digit
+        # group codes like "123") so name-based matches don't get attached to
+        # plain numeric entries. Those numeric codes are already handled by
+        # the code-based search above.
+        mapping_names.loc[:, "Use NAICS Code"] = (
+            mapping_names["Use NAICS Code"]
+            .astype(str)
+            .str.split(",")
+            .apply(
+                lambda lst: [
+                    s.strip()
+                    for s in lst
+                    if not (s.strip().isdigit() and len(s.strip()) <= 3)
+                ]
+                if isinstance(lst, list)
+                else lst
+            )
+        )
+        mapping_names = mapping_names.explode("Use NAICS Code").reset_index(drop=True)
+
+        mapping_names.loc[:, "NAICS index names to include"] = (
+            mapping_names["NAICS index names to include"]
+            .dropna()
+            .astype(str)
+            .str.split(";")
+            .apply(
+                lambda lst: [s.strip() for s in lst] if isinstance(lst, list) else lst
+            )
+        )
+        mapping_names = mapping_names.explode(
+            "NAICS index names to include"
+        ).reset_index(drop=True)
+
+        name_search = name_search.merge(
+            mapping_names,
+            how="left",
+            left_on="Permitted value",
+            right_on="NAICS index names to include",
+        )
+
     permitted_values = pd.concat(
         [
-            six_digit_search,
-            five_digit_search,
-            four_digit_search,
-            three_digit_search,
+            code_search,
             name_search,
         ]
     ).reset_index(drop=True)
-
-    # Attach the original 'Is Allowed' value from the permitted district uses.
-    # Normalize the permitted use codes (they may be comma-separated) so we
-    # can join by the permitted value (which is the original Use NAICS Code).
-    # mapping = permitted_district_uses[["Use NAICS Code", "Is Allowed"]].copy()
-    mapping = permitted_district_uses.copy()
-    mapping.loc[:, "Use NAICS Code"] = (
-        mapping["Use NAICS Code"]
-        .astype(str)
-        .str.split(",")
-        .apply(lambda lst: [s.strip() for s in lst] if isinstance(lst, list) else lst)
-    )
-    mapping = mapping.explode("Use NAICS Code").reset_index(drop=True)
-
-    permitted_values = permitted_values.merge(
-        mapping,
-        how="left",
-        left_on="Permitted value",
-        right_on="Use NAICS Code",
-    )
 
     return permitted_values
 
