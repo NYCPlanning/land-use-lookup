@@ -115,13 +115,13 @@ jupyter-core==5.9.1
     #   ipykernel
     #   jupyter-client
     #   nbformat
-librt==0.6.3
+librt==0.7.3
     # via mypy
 loro==1.10.0
     # via marimo
 lsprotocol==2025.0.0
     # via python-lsp-ruff
-marimo==0.18.2
+marimo==0.18.3
     # via -r requirements.in
 markdown==3.10
     # via
@@ -176,7 +176,7 @@ pathspec==0.12.1
     #   mypy
 pexpect==4.9.0
     # via ipython
-platformdirs==4.5.0
+platformdirs==4.5.1
     # via
     #   black
     #   jupyter-core
@@ -222,7 +222,7 @@ pygments==2.19.2
     #   pytest
 pymdown-extensions==10.17.2
     # via marimo
-pytest==9.0.1
+pytest==9.0.2
     # via -r requirements.in
 python-dateutil==2.9.0.post0
     # via
@@ -232,7 +232,7 @@ python-lsp-jsonrpc==1.1.2
     # via python-lsp-server
 python-lsp-ruff==2.3.0
     # via marimo
-python-lsp-server==1.13.2
+python-lsp-server==1.14.0
     # via
     #   marimo
     #   python-lsp-ruff
@@ -317,7 +317,7 @@ ujson==5.11.0
     # via
     #   python-lsp-jsonrpc
     #   python-lsp-server
-urllib3==2.5.0
+urllib3==2.6.0
     # via requests
 uvicorn==0.38.0
     # via marimo
