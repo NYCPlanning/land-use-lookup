@@ -11,17 +11,18 @@ def find_permitted_naics_indexes(
     )
     permitted_district_uses = district_uses[~district_uses["Not permitted"]]
 
-    # "Use NAICS Code" values are NAICS index codes and are , delimited
+    # "Use NAICS Code" values are NAICS index codes and are comma-delimited.
+    # Reuse the generic `explode_delimited_lists` helper to split, strip,
+    # and explode values rather than doing manual string manipulation here.
     permitted_use_codes = (
-        permitted_district_uses["Use NAICS Code"]
+        explode_delimited_lists(
+            permitted_district_uses[["Use NAICS Code"]],
+            "Use NAICS Code",
+            ",",
+        )["Use NAICS Code"]
         .dropna()
         .sort_values()
         .reset_index(drop=True)
-    )
-    # may have a comma-delimited list of codes
-    split_permitted_use_codes = permitted_use_codes.str.split(",")
-    permitted_use_codes = pd.Series(
-        [item.strip() for sublist in split_permitted_use_codes for item in sublist]
     )
 
     # district uses may have no code or a code with 6 to 3 digits
