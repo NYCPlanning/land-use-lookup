@@ -25,56 +25,31 @@ def find_permitted_naics_indexes(
     )
 
     # district uses may have no code or a code with 6 to 3 digits
-    use_codes_six_digits = permitted_use_codes[
-        permitted_use_codes.str.len() == 6
-    ].reset_index(drop=True)
-    use_codes_five_digits = permitted_use_codes[
-        permitted_use_codes.str.len() == 5
-    ].reset_index(drop=True)
-    use_codes_four_digits = permitted_use_codes[
-        permitted_use_codes.str.len() == 4
-    ].reset_index(drop=True)
-    use_codes_three_digits = permitted_use_codes[
-        permitted_use_codes.str.len() == 3
-    ].reset_index(drop=True)
+    # Build searches for code-based permitted values in a DRY way.
+    # Map: (length of code string, column in `naics_codes`, readable reason)
+    length_column_reason = [
+        (6, "NAICS Code", "NAICS Code"),
+        (5, "Five-digit Group Code", "Five-digit Group Code"),
+        (4, "Four-digit Group Code", "Four-digit Group Code"),
+        (3, "Three-digit Group Code", "Three-digit Group Code"),
+    ]
 
-    six_digit_search = (
-        naics_codes[naics_codes["NAICS Code"].isin(use_codes_six_digits)]
-        .sort_values(by="NAICS Code")
-        .reset_index(drop=True)
-    )
-    six_digit_search["Permitted reason"] = "NAICS Code"
-    six_digit_search["Permitted value"] = six_digit_search["NAICS Code"]
-    five_digit_search = (
-        naics_codes[naics_codes["Five-digit Group Code"].isin(use_codes_five_digits)]
-        .sort_values(by="Five-digit Group Code")
-        .reset_index(drop=True)
-    )
-    five_digit_search["Permitted reason"] = "Five-digit Group Code"
-    five_digit_search["Permitted value"] = five_digit_search["Five-digit Group Code"]
-    four_digit_search = (
-        naics_codes[naics_codes["Four-digit Group Code"].isin(use_codes_four_digits)]
-        .sort_values(by="Four-digit Group Code")
-        .reset_index(drop=True)
-    )
-    four_digit_search["Permitted reason"] = "Four-digit Group Code"
-    four_digit_search["Permitted value"] = four_digit_search["Four-digit Group Code"]
-    three_digit_search = (
-        naics_codes[naics_codes["Three-digit Group Code"].isin(use_codes_three_digits)]
-        .sort_values(by="Three-digit Group Code")
-        .reset_index(drop=True)
-    )
-    three_digit_search["Permitted reason"] = "Three-digit Group Code"
-    three_digit_search["Permitted value"] = three_digit_search["Three-digit Group Code"]
+    code_search_parts = []
+    for length, column_name, reason in length_column_reason:
+        matches = permitted_use_codes[permitted_use_codes.str.len() == length]
+        if matches.empty:
+            continue
+        matches = matches.reset_index(drop=True)
+        part = (
+            naics_codes[naics_codes[column_name].isin(matches)]
+            .sort_values(by=column_name)
+            .reset_index(drop=True)
+        )
+        part["Permitted reason"] = reason
+        part["Permitted value"] = part[column_name]
+        code_search_parts.append(part)
 
-    code_search = pd.concat(
-        [
-            six_digit_search,
-            five_digit_search,
-            four_digit_search,
-            three_digit_search,
-        ]
-    ).reset_index(drop=True)
+    code_search = pd.concat(code_search_parts, ignore_index=True) if code_search_parts else pd.DataFrame()
 
     # Build mapping by exploded Use NAICS Code so we can attach the original
     # permitted district-use columns to each search result before concatenating.
