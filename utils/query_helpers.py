@@ -5,6 +5,36 @@ def find_permitted_naics_indexes(
     district_uses: pd.DataFrame,
     naics_codes: pd.DataFrame,
 ) -> pd.DataFrame:
+    """Return NAICS index rows permitted by a single zoning district's rules.
+
+    This inspects ``district_uses`` for a single ``Zoning District`` and
+    builds a set of permitted NAICS index rows (from ``naics_codes``).
+    It supports two complementary matching strategies:
+
+    - Code-based matching: values in ``Use NAICS Code`` may be numeric
+      prefixes (3-6 digits) or full 6-digit codes; prefixes are matched
+      against the appropriate group-code columns in ``naics_codes``.
+    - Name-based matching: values in ``NAICS index names to include`` are
+      semicolon-delimited NAICS titles and are matched against
+      ``naics_codes["NAICS Title"]``.
+
+    Parameters
+    ----------
+    district_uses : pd.DataFrame
+        DataFrame containing zoning district rules. Must contain a single
+        unique value in the ``Zoning District`` column.
+    naics_codes : pd.DataFrame
+        DataFrame containing NAICS index rows and group-code columns.
+
+    Returns
+    -------
+    pd.DataFrame
+        Matched ``naics_codes`` rows with two additional columns appended:
+        ``Permitted reason`` (the column used for the match) and
+        ``Permitted value`` (the original district value that caused the
+        match).
+    """
+
     districts = district_uses["Zoning District"].unique()
     assert len(districts) == 1, (
         f"There should only be one zoning district value, not {districts}"
@@ -138,16 +168,33 @@ def find_permitted_naics_indexes(
 
 def explode_delimited_lists(
     df: pd.DataFrame, column_to_split: str, delimiter: str = ",",
-    convert_to_str: bool = False, drop_short_numeric_max_len: int = None,
+    convert_to_str: bool = False, drop_short_numeric_max_len: int | None = None,
 ) -> pd.DataFrame:
-    """Split a delimited column into lists, strip whitespace, optionally
-    convert values to string before splitting, optionally drop short numeric
-    entries, and explode the column.
+    """Split a delimited column into lists, strip whitespace, and explode it.
 
-    - `convert_to_str`: call `astype(str)` before splitting (keeps previous
-      behaviour where callers intentionally convert to string).
-    - `drop_short_numeric_max_len`: if provided, drop items which are purely
-      numeric and whose length is <= this value.
+    The column values are split on the given ``delimiter``, surrounding
+    whitespace is stripped from each item, and the column is exploded so each
+    row contains a single item.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing the column to split.
+    column_to_split : str
+        Name of the column to split and explode.
+    delimiter : str, optional
+        Delimiter to split by, by default ",".
+    convert_to_str : bool, optional
+        If True, convert the column to string before splitting.
+    drop_short_numeric_max_len : int or None, optional
+        If provided, drop items which are purely numeric and whose length is
+        less than or equal to this value.
+
+    Returns
+    -------
+    pd.DataFrame
+        A new DataFrame where ``column_to_split`` has been expanded and
+        exploded into individual rows.
     """
     def _clean_list(lst):
         if not isinstance(lst, list):
@@ -166,23 +213,73 @@ def explode_delimited_lists(
 
 
 def explode_code(code: str) -> list[str]:
+    """Expand a NAICS prefix into the list of 6-digit NAICS codes it
+    represents.
+
+    Examples
+    --------
+    - ``"12345"`` -> [``"123450"``, ``"123451"``, ..., ``"123459"``]
+    - ``"123"`` -> [``"123000"``, ..., ``"123999"``]
+
+    Parameters
+    ----------
+    code : str
+        Numeric string of length 1..6 representing a NAICS code or prefix.
+
+    Returns
+    -------
+    list[str]
+        List of 6-digit NAICS codes represented by the prefix. If ``code`` is
+        already 6 digits this returns a single-item list containing ``code``.
+
+    Raises
+    ------
+    ValueError
+        If ``code`` is not a numeric string or is longer than 6 digits.
+    """
+    if not isinstance(code, str) or not code.isdigit():
+        raise ValueError("Code must be a numeric string")
+
     code_length = len(code)
     if code_length == 6:
         return [code]
-    elif code_length < 6:
-        # Pad code with zeros to the right to get the range start
+    if code_length < 6:
+        # Construct integer range by padding the prefix to the start and end
+        # values for the full 6-digit range (e.g. "123" -> 123000..123999).
         start = int(code.ljust(6, "0"))
-        # Pad code with nines to the right to get the range end
         end = int(code.ljust(6, "9"))
         return [str(i).zfill(6) for i in range(start, end + 1)]
-    else:
-        raise ValueError("Code must be 6 digits or fewer")
+
+    raise ValueError("Code must be 6 digits or fewer")
 
 
 def exclude_naics_codes(
     permitted_use_codes: pd.DataFrame,
     district_uses: pd.DataFrame,
 ) -> pd.DataFrame:
+    """Remove excluded NAICS codes listed in district uses from a set of
+    permitted NAICS codes.
+
+    The function looks for ``NAICS to subtract`` entries in ``district_uses``,
+    expands any prefixes to full 6-digit codes, and subtracts those codes from
+    ``permitted_use_codes``.
+
+    Parameters
+    ----------
+    permitted_use_codes : pd.DataFrame
+        DataFrame of permitted NAICS codes. Must include columns ``NAICS Code``
+        and ``Permitted value``.
+    district_uses : pd.DataFrame
+        DataFrame of district uses containing an optional ``NAICS to subtract``
+        column with comma-delimited codes or prefixes.
+
+    Returns
+    -------
+    pd.DataFrame
+        Reduced ``permitted_use_codes`` DataFrame with excluded NAICS codes
+        removed.
+    """
+
     permitted_district_uses = district_uses[
         district_uses["Use NAICS Code"].isin(permitted_use_codes["Permitted value"])
     ]
