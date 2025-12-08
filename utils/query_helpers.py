@@ -55,13 +55,9 @@ def find_permitted_naics_indexes(
     # Build mapping by exploded Use NAICS Code so we can attach the original
     # permitted district-use columns to each search result before concatenating.
     mapping_codes = permitted_district_uses.copy()
-    mapping_codes.loc[:, "Use NAICS Code"] = (
-        mapping_codes["Use NAICS Code"]
-        .astype(str)
-        .str.split(",")
-        .apply(lambda lst: [s.strip() for s in lst] if isinstance(lst, list) else lst)
+    mapping_codes = explode_delimited_lists(
+        mapping_codes, "Use NAICS Code", ",", convert_to_str=True
     )
-    mapping_codes = mapping_codes.explode("Use NAICS Code").reset_index(drop=True)
 
     code_search = code_search.merge(
         mapping_codes,
@@ -102,21 +98,13 @@ def find_permitted_naics_indexes(
         # group codes like "123") so name-based matches don't get attached to
         # plain numeric entries. Those numeric codes are already handled by
         # the code-based search above.
-        mapping_names.loc[:, "Use NAICS Code"] = (
-            mapping_names["Use NAICS Code"]
-            .astype(str)
-            .str.split(",")
-            .apply(
-                lambda lst: [
-                    s.strip()
-                    for s in lst
-                    if not (s.strip().isdigit() and len(s.strip()) <= 3)
-                ]
-                if isinstance(lst, list)
-                else lst
-            )
+        mapping_names = explode_delimited_lists(
+            mapping_names,
+            "Use NAICS Code",
+            ",",
+            convert_to_str=True,
+            drop_short_numeric_max_len=3,
         )
-        mapping_names = mapping_names.explode("Use NAICS Code").reset_index(drop=True)
 
         mapping_names.loc[:, "NAICS index names to include"] = (
             mapping_names["NAICS index names to include"]
@@ -149,15 +137,31 @@ def find_permitted_naics_indexes(
 
 
 def explode_delimited_lists(
-    df: pd.DataFrame, column_to_split: str, delimiter: str = ","
+    df: pd.DataFrame, column_to_split: str, delimiter: str = ",",
+    convert_to_str: bool = False, drop_short_numeric_max_len: int = None,
 ) -> pd.DataFrame:
-    # Split the column into lists and strip whitespace
-    df.loc[:, column_to_split] = (
-        df[column_to_split]
-        .str.split(delimiter)
-        .apply(lambda lst: [s.strip() for s in lst] if isinstance(lst, list) else lst)
-    )
-    # Explode the column
+    """Split a delimited column into lists, strip whitespace, optionally
+    convert values to string before splitting, optionally drop short numeric
+    entries, and explode the column.
+
+    - `convert_to_str`: call `astype(str)` before splitting (keeps previous
+      behaviour where callers intentionally convert to string).
+    - `drop_short_numeric_max_len`: if provided, drop items which are purely
+      numeric and whose length is <= this value.
+    """
+    def _clean_list(lst):
+        if not isinstance(lst, list):
+            return lst
+        if drop_short_numeric_max_len is not None:
+            return [s.strip() for s in lst if not (s.strip().isdigit() and len(s.strip()) <= drop_short_numeric_max_len)]
+        return [s.strip() for s in lst]
+
+    series = df[column_to_split]
+    if convert_to_str:
+        series = series.astype(str)
+    series = series.str.split(delimiter)
+    series = series.apply(lambda lst: _clean_list(lst) if isinstance(lst, list) else lst)
+    df.loc[:, column_to_split] = series
     return df.explode(column_to_split).reset_index(drop=True)
 
 
