@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.18.2"
+__generated_with = "0.18.3"
 app = marimo.App(width="medium", css_file="public/custom.css")
 
 with app.setup:
@@ -142,28 +142,14 @@ def _(dropdown_districts, dropdown_naics_uses, dropdown_zr_uses, tab_use_type):
         if tab_use_type.value == "Zoning Resolution"
         else dropdown_naics_uses.value
     )
-    use_name_header = (
-        dropdown_zr_uses.value
-        if tab_use_type.value == "Zoning Resolution"
-        else dropdown_naics_uses.value
-    )
 
-    fake_list = ["code1/NAICS Name 1", "code1/NAICS Name 2"]
-    fake_list_text = ", ".join(fake_list)
-    fake_name = "An NYC thing"
-    zr_to_naics_use_text = f"Use name '{selected_use_name}' is associated with {len(fake_list)} NAICS Index codes in the Zoning Resolution: {fake_list_text}"
+    # fake_list = ["code1/NAICS Name 1", "code1/NAICS Name 2"]
+    # fake_list_text = ", ".join(fake_list)
+    # fake_name = "An NYC thing"
+    # zr_to_naics_use_text = f"Use name '{selected_use_name}' is associated with {len(fake_list)} NAICS Index codes in the Zoning Resolution: {fake_list_text}"
 
-    naics_to_zr_use_text = f"NAICS Index name '{selected_use_name}' is associated with the Zoning Resolution use name '{fake_name}'"
-    return selected_district, selected_use_name, use_name_header
-
-
-@app.cell
-def _(pd):
-    _columns = ["ID", "Name", "Age"]
-    _data = [[1, "Alice", 25], [2, "Bob", 30], [3, "Charlie", 22]]
-
-    fake_results = pd.DataFrame(_data, columns=_columns)
-    return
+    # naics_to_zr_use_text = f"NAICS Index name '{selected_use_name}' is associated with the Zoning Resolution use name '{fake_name}'"
+    return selected_district, selected_use_name
 
 
 @app.cell
@@ -178,6 +164,8 @@ def _():
 @app.cell
 def _(pd):
     def format_ui_table(data: pd.DataFrame):
+        if data.empty:
+            return "No results, try again."
         return mo.ui.table(
             data,
             page_size=25,
@@ -197,7 +185,6 @@ def _(
     selected_district,
     selected_use_name,
     tab_use_type,
-    use_name_header,
     uses_by_zoning_district_minimal,
 ):
     # by district
@@ -215,7 +202,7 @@ def _(
     )
     result_stack_district = mo.vstack(
         [
-            f"You chose {selected_district}",
+            f"You chose '{selected_district}'",
             by_district_result,
         ]
     )
@@ -245,7 +232,7 @@ def _(
     )
     result_stack_use_name = mo.vstack(
         [
-            use_name_header,
+            f"You chose '{selected_use_name}'",
             by_use_name_result,
         ]
     )
@@ -366,108 +353,95 @@ def _(pd):
         district_uses: pd.DataFrame,
         naics_codes: pd.DataFrame,
     ) -> pd.DataFrame:
+        """Return NAICS index rows permitted by a single zoning district's rules.
+
+        This inspects ``district_uses`` for a single ``Zoning District`` and
+        builds a set of permitted NAICS index rows (from ``naics_codes``).
+        It supports two complementary matching strategies:
+
+        - Code-based matching: values in ``Use NAICS Code`` may be numeric
+          prefixes (3-6 digits) or full 6-digit codes; prefixes are matched
+          against the appropriate group-code columns in ``naics_codes``.
+        - Name-based matching: values in ``NAICS index names to include`` are
+          semicolon-delimited NAICS titles and are matched against
+          ``naics_codes["NAICS Title"]``.
+
+        Parameters
+        ----------
+        district_uses : pd.DataFrame
+            DataFrame containing zoning district rules. Must contain a single
+            unique value in the ``Zoning District`` column.
+        naics_codes : pd.DataFrame
+            DataFrame containing NAICS index rows and group-code columns.
+
+        Returns
+        -------
+        pd.DataFrame
+            Matched ``naics_codes`` rows with two additional columns appended:
+            ``Permitted reason`` (the column used for the match) and
+            ``Permitted value`` (the original district value that caused the
+            match).
+        """
+
         districts = district_uses["Zoning District"].unique()
         assert len(districts) == 1, (
             f"There should only be one zoning district value, not {districts}"
         )
         permitted_district_uses = district_uses[~district_uses["Not permitted"]]
 
-        # "Use NAICS Code" values are NAICS index codes and are , delimited
+        # "Use NAICS Code" values are NAICS index codes and are comma-delimited.
+        # Reuse the generic `explode_delimited_lists` helper to split, strip,
+        # and explode values rather than doing manual string manipulation here.
         permitted_use_codes = (
-            permitted_district_uses["Use NAICS Code"]
+            explode_delimited_lists(
+                permitted_district_uses[["Use NAICS Code"]],
+                "Use NAICS Code",
+                ",",
+            )["Use NAICS Code"]
             .dropna()
             .sort_values()
             .reset_index(drop=True)
         )
-        # may have a comma-delimited list of codes
-        split_permitted_use_codes = permitted_use_codes.str.split(",")
-        permitted_use_codes = pd.Series(
-            [
-                item.strip()
-                for sublist in split_permitted_use_codes
-                for item in sublist
-            ]
-        )
 
         # district uses may have no code or a code with 6 to 3 digits
-        use_codes_six_digits = permitted_use_codes[
-            permitted_use_codes.str.len() == 6
-        ].reset_index(drop=True)
-        use_codes_five_digits = permitted_use_codes[
-            permitted_use_codes.str.len() == 5
-        ].reset_index(drop=True)
-        use_codes_four_digits = permitted_use_codes[
-            permitted_use_codes.str.len() == 4
-        ].reset_index(drop=True)
-        use_codes_three_digits = permitted_use_codes[
-            permitted_use_codes.str.len() == 3
-        ].reset_index(drop=True)
-
-        six_digit_search = (
-            naics_codes[naics_codes["NAICS Code"].isin(use_codes_six_digits)]
-            .sort_values(by="NAICS Code")
-            .reset_index(drop=True)
-        )
-        six_digit_search["Permitted reason"] = "NAICS Code"
-        six_digit_search["Permitted value"] = six_digit_search["NAICS Code"]
-        five_digit_search = (
-            naics_codes[
-                naics_codes["Five-digit Group Code"].isin(use_codes_five_digits)
-            ]
-            .sort_values(by="Five-digit Group Code")
-            .reset_index(drop=True)
-        )
-        five_digit_search["Permitted reason"] = "Five-digit Group Code"
-        five_digit_search["Permitted value"] = five_digit_search[
-            "Five-digit Group Code"
-        ]
-        four_digit_search = (
-            naics_codes[
-                naics_codes["Four-digit Group Code"].isin(use_codes_four_digits)
-            ]
-            .sort_values(by="Four-digit Group Code")
-            .reset_index(drop=True)
-        )
-        four_digit_search["Permitted reason"] = "Four-digit Group Code"
-        four_digit_search["Permitted value"] = four_digit_search[
-            "Four-digit Group Code"
-        ]
-        three_digit_search = (
-            naics_codes[
-                naics_codes["Three-digit Group Code"].isin(use_codes_three_digits)
-            ]
-            .sort_values(by="Three-digit Group Code")
-            .reset_index(drop=True)
-        )
-        three_digit_search["Permitted reason"] = "Three-digit Group Code"
-        three_digit_search["Permitted value"] = three_digit_search[
-            "Three-digit Group Code"
+        # Build searches for code-based permitted values in a DRY way.
+        # Map: (length of code string, column in `naics_codes`, readable reason)
+        length_column_reason = [
+            (6, "NAICS Code", "NAICS Code"),
+            (5, "Five-digit Group Code", "Five-digit Group Code"),
+            (4, "Four-digit Group Code", "Four-digit Group Code"),
+            (3, "Three-digit Group Code", "Three-digit Group Code"),
         ]
 
-        code_search = pd.concat(
-            [
-                six_digit_search,
-                five_digit_search,
-                four_digit_search,
-                three_digit_search,
-            ]
-        ).reset_index(drop=True)
+        code_search_parts = []
+        for length, column_name, reason in length_column_reason:
+            matches = permitted_use_codes[permitted_use_codes.str.len() == length]
+            if matches.empty:
+                continue
+            matches = matches.reset_index(drop=True)
+            part = (
+                naics_codes[naics_codes[column_name].isin(matches)]
+                .sort_values(by=column_name)
+                .reset_index(drop=True)
+            )
+            part["Permitted reason"] = reason
+            part["Permitted value"] = part[column_name]
+            code_search_parts.append(part)
+
+        code_search = (
+            pd.concat(code_search_parts, ignore_index=True)
+            if code_search_parts
+            else pd.DataFrame(
+                columns=naics_codes.columns.to_list()
+                + ["Permitted reason", "Permitted value"]
+            )
+        )
 
         # Build mapping by exploded Use NAICS Code so we can attach the original
         # permitted district-use columns to each search result before concatenating.
         mapping_codes = permitted_district_uses.copy()
-        mapping_codes.loc[:, "Use NAICS Code"] = (
-            mapping_codes["Use NAICS Code"]
-            .astype(str)
-            .str.split(",")
-            .apply(
-                lambda lst: [s.strip() for s in lst]
-                if isinstance(lst, list)
-                else lst
-            )
-        )
-        mapping_codes = mapping_codes.explode("Use NAICS Code").reset_index(
-            drop=True
+        mapping_codes = explode_delimited_lists(
+            mapping_codes, "Use NAICS Code", ",", convert_to_str=True
         )
 
         code_search = code_search.merge(
@@ -479,7 +453,10 @@ def _(pd):
 
         # "NAICS index names to include" values are NAICS index titles and are ; delimited
         if not "NAICS index names to include" in permitted_district_uses.columns:
-            name_search = pd.DataFrame()
+            name_search = pd.DataFrame(
+                columns=naics_codes.columns.to_list()
+                + ["Permitted reason", "Permitted value"]
+            )
         else:
             names_to_include = (
                 permitted_district_uses["NAICS index names to include"]
@@ -513,22 +490,12 @@ def _(pd):
             # group codes like "123") so name-based matches don't get attached to
             # plain numeric entries. Those numeric codes are already handled by
             # the code-based search above.
-            mapping_names.loc[:, "Use NAICS Code"] = (
-                mapping_names["Use NAICS Code"]
-                .astype(str)
-                .str.split(",")
-                .apply(
-                    lambda lst: [
-                        s.strip()
-                        for s in lst
-                        if not (s.strip().isdigit() and len(s.strip()) <= 3)
-                    ]
-                    if isinstance(lst, list)
-                    else lst
-                )
-            )
-            mapping_names = mapping_names.explode("Use NAICS Code").reset_index(
-                drop=True
+            mapping_names = explode_delimited_lists(
+                mapping_names,
+                "Use NAICS Code",
+                ",",
+                convert_to_str=True,
+                drop_short_numeric_max_len=3,
             )
 
             mapping_names.loc[:, "NAICS index names to include"] = (
@@ -564,48 +531,140 @@ def _(pd):
 
 
     def explode_delimited_lists(
-        df: pd.DataFrame, column_to_split: str, delimiter: str = ","
+        df: pd.DataFrame,
+        column_to_split: str,
+        delimiter: str = ",",
+        convert_to_str: bool = False,
+        drop_short_numeric_max_len: int | None = None,
     ) -> pd.DataFrame:
-        # Split the column into lists and strip whitespace
-        df.loc[:, column_to_split] = (
-            df[column_to_split]
-            .str.split(delimiter)
-            .apply(
-                lambda lst: [s.strip() for s in lst]
-                if isinstance(lst, list)
-                else lst
-            )
+        """Split a delimited column into lists, strip whitespace, and explode it.
+
+        The column values are split on the given ``delimiter``, surrounding
+        whitespace is stripped from each item, and the column is exploded so each
+        row contains a single item.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            DataFrame containing the column to split.
+        column_to_split : str
+            Name of the column to split and explode.
+        delimiter : str, optional
+            Delimiter to split by, by default ",".
+        convert_to_str : bool, optional
+            If True, convert the column to string before splitting.
+        drop_short_numeric_max_len : int or None, optional
+            If provided, drop items which are purely numeric and whose length is
+            less than or equal to this value.
+
+        Returns
+        -------
+        pd.DataFrame
+            A new DataFrame where ``column_to_split`` has been expanded and
+            exploded into individual rows.
+        """
+
+        def _clean_list(lst):
+            if not isinstance(lst, list):
+                return lst
+            if drop_short_numeric_max_len is not None:
+                return [
+                    s.strip()
+                    for s in lst
+                    if not (
+                        s.strip().isdigit()
+                        and len(s.strip()) <= drop_short_numeric_max_len
+                    )
+                ]
+            return [s.strip() for s in lst]
+
+        series = df[column_to_split]
+        if convert_to_str:
+            series = series.astype(str)
+        series = series.str.split(delimiter)
+        series = series.apply(
+            lambda lst: _clean_list(lst) if isinstance(lst, list) else lst
         )
-        # Explode the column
+        df.loc[:, column_to_split] = series
         return df.explode(column_to_split).reset_index(drop=True)
 
 
     def explode_code(code: str) -> list[str]:
+        """Expand a NAICS prefix into the list of 6-digit NAICS codes it
+        represents.
+
+        Examples
+        --------
+        - ``"12345"`` -> [``"123450"``, ``"123451"``, ..., ``"123459"``]
+        - ``"123"`` -> [``"123000"``, ..., ``"123999"``]
+
+        Parameters
+        ----------
+        code : str
+            Numeric string of length 1..6 representing a NAICS code or prefix.
+
+        Returns
+        -------
+        list[str]
+            List of 6-digit NAICS codes represented by the prefix. If ``code`` is
+            already 6 digits this returns a single-item list containing ``code``.
+
+        Raises
+        ------
+        ValueError
+            If ``code`` is not a numeric string or is longer than 6 digits.
+        """
+        if not isinstance(code, str) or not code.isdigit():
+            raise ValueError("Code must be a numeric string")
+
         code_length = len(code)
         if code_length == 6:
             return [code]
-        elif code_length < 6:
-            # Pad code with zeros to the right to get the range start
+        if code_length < 6:
+            # Construct integer range by padding the prefix to the start and end
+            # values for the full 6-digit range (e.g. "123" -> 123000..123999).
             start = int(code.ljust(6, "0"))
-            # Pad code with nines to the right to get the range end
             end = int(code.ljust(6, "9"))
             return [str(i).zfill(6) for i in range(start, end + 1)]
-        else:
-            raise ValueError("Code must be 6 digits or fewer")
+
+        raise ValueError("Code must be 6 digits or fewer")
 
 
     def exclude_naics_codes(
         permitted_use_codes: pd.DataFrame,
         district_uses: pd.DataFrame,
     ) -> pd.DataFrame:
+        """Remove excluded NAICS codes listed in district uses from a set of
+        permitted NAICS codes.
+
+        The function looks for ``NAICS to subtract`` entries in ``district_uses``,
+        expands any prefixes to full 6-digit codes, and subtracts those codes from
+        ``permitted_use_codes``.
+
+        Parameters
+        ----------
+        permitted_use_codes : pd.DataFrame
+            DataFrame of permitted NAICS codes. Must include columns ``NAICS Code``
+            and ``Permitted value``.
+        district_uses : pd.DataFrame
+            DataFrame of district uses containing an optional ``NAICS to subtract``
+            column with comma-delimited codes or prefixes.
+
+        Returns
+        -------
+        pd.DataFrame
+            Reduced ``permitted_use_codes`` DataFrame with excluded NAICS codes
+            removed.
+        """
+
         permitted_district_uses = district_uses[
             district_uses["Use NAICS Code"].isin(
                 permitted_use_codes["Permitted value"]
             )
         ]
         # Split and explode comma-separated lists of codes
-        exploded_exclusions = permitted_district_uses.pipe(
-            explode_delimited_lists, "NAICS to subtract"
+        exploded_exclusions = explode_delimited_lists(
+            permitted_district_uses, "NAICS to subtract"
         ).dropna(subset=["NAICS to subtract"])
         # Explode 6-or-less-digit codes to lists of 6-digit codes
         exploded_exclusions["NAICS to subtract"] = exploded_exclusions[
@@ -637,14 +696,16 @@ def _(pd):
         permitted_use_codes: pd.DataFrame,
         district_uses: pd.DataFrame,
     ) -> pd.DataFrame:
+        if "NAICS index names to subtract" not in district_uses.columns:
+            return permitted_use_codes
         permitted_district_uses = district_uses[
             district_uses["Use NAICS Code"].isin(
                 permitted_use_codes["Permitted value"]
             )
         ]
         # Split and explode semicolon-separated lists of names
-        exploded_exclusions = permitted_district_uses.pipe(
-            explode_delimited_lists, "NAICS index names to subtract", ";"
+        exploded_exclusions = explode_delimited_lists(
+            permitted_district_uses, "NAICS index names to subtract", ";"
         ).dropna(subset=["NAICS index names to subtract"])
         # After expanding each value to a list of 6-digit codes, explode those lists
         # into individual rows so each row contains a single 6-digit code.
@@ -666,11 +727,20 @@ def _(pd):
         ][permitted_use_codes.columns.to_list()].reset_index(drop=True)
 
         return reduced_use_names
-    return exclude_naics_codes, find_permitted_naics_indexes
+    return (
+        exclude_naics_codes,
+        exclude_naics_names,
+        find_permitted_naics_indexes,
+    )
 
 
 @app.cell
-def _(exclude_naics_codes, find_permitted_naics_indexes, pd):
+def _(
+    exclude_naics_codes,
+    exclude_naics_names,
+    find_permitted_naics_indexes,
+    pd,
+):
     ZR_URL_COLUMNS = [
         "Special Permit",
         "Size Restrictions",
@@ -757,9 +827,14 @@ def _(exclude_naics_codes, find_permitted_naics_indexes, pd):
         district_uses = uses_by_zoning_district[
             uses_by_zoning_district["Zoning District"] == zoning_distrct
         ]
-        results = district_uses.pipe(
-            find_permitted_naics_indexes, naics_codes
-        ).pipe(exclude_naics_codes, district_uses)
+        permitted_indexes = find_permitted_naics_indexes(
+            district_uses, naics_codes
+        )
+        if permitted_indexes is None:
+            return None
+        codes_excluded = exclude_naics_codes(permitted_indexes, district_uses)
+        names_excluded = exclude_naics_names(codes_excluded, district_uses)
+
         first_columns = [
             "Zoning District",
             "Use Name",
@@ -770,7 +845,7 @@ def _(exclude_naics_codes, find_permitted_naics_indexes, pd):
             "Permitted value",
         ]
         primary_columns = first_columns + ZR_URL_COLUMNS
-        reordered = _reorder_columns(results, primary_columns)
+        reordered = _reorder_columns(names_excluded, primary_columns)
         if minimal_columns:
             return reordered.loc[:, primary_columns]
         return reordered
@@ -821,6 +896,7 @@ def _(exclude_naics_codes, find_permitted_naics_indexes, pd):
             districts_results.append(district_result)
 
         results = pd.concat(districts_results, ignore_index=True)
+
         first_columns = [
             "NAICS Title",
             "NAICS Code",
@@ -832,6 +908,7 @@ def _(exclude_naics_codes, find_permitted_naics_indexes, pd):
         ]
         primary_columns = first_columns + ZR_URL_COLUMNS
         reordered = _reorder_columns(results, primary_columns)
+
         if minimal_columns:
             return reordered.loc[:, primary_columns]
         return reordered
