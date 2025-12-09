@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 from utils.query_helpers import (
     find_permitted_naics_indexes,
@@ -19,6 +20,29 @@ def _reorder_columns(df: pd.DataFrame, first_columns: list):
     existing_first_cols = [c for c in first_columns if c in df.columns]
     other_cols = [c for c in df.columns if c not in existing_first_cols]
     return df.loc[:, existing_first_cols + other_cols]
+
+
+def _clean_falsy_values(df: pd.DataFrame) -> pd.DataFrame:
+    # replace all falsy values with an empty string
+    df = df.copy()
+    for col in df.columns:
+        df[col] = df[col].fillna("")
+        df[col] = df[col].replace(False, "")
+        df[col] = df[col].replace("False", "")
+    return df
+
+
+def _prepare_results_columns(
+    results: pd.DataFrame, first_columns: list, minimal_columns: bool = False
+) -> pd.DataFrame:
+    primary_columns = first_columns + ZR_URL_COLUMNS
+    reordered = _reorder_columns(results, primary_columns)
+    cleaned_values = _clean_falsy_values(reordered)
+
+    result = cleaned_values
+    if minimal_columns:
+        return result.loc[:, primary_columns]
+    return result
 
 
 def get_district_uses_by_zr_use(
@@ -52,11 +76,7 @@ def get_district_uses_by_zr_use(
         "Zoning District",
         "Is Allowed",
     ]
-    primary_columns = first_columns + ZR_URL_COLUMNS
-    reordered = _reorder_columns(results, primary_columns)
-    if minimal_columns:
-        return reordered.loc[:, primary_columns]
-    return reordered
+    return _prepare_results_columns(results, first_columns, minimal_columns)
 
 
 def get_naics_indexes_by_district(
@@ -100,7 +120,7 @@ def get_naics_indexes_by_district(
     assert "NAICS index names to subtract" in district_uses.columns, (
         "Column 'NAICS index names to subtract' missing from District Uses data"
     )
-    names_excluded = exclude_naics_names(codes_excluded, district_uses)
+    results = exclude_naics_names(codes_excluded, district_uses)
 
     first_columns = [
         "Zoning District",
@@ -112,11 +132,7 @@ def get_naics_indexes_by_district(
         "Permitted reason",
         "Permitted value",
     ]
-    primary_columns = first_columns + ZR_URL_COLUMNS
-    reordered = _reorder_columns(names_excluded, primary_columns)
-    if minimal_columns:
-        return reordered.loc[:, primary_columns]
-    return reordered
+    return _prepare_results_columns(results, first_columns, minimal_columns)
 
 
 def get_all_uses_by_district(
@@ -137,19 +153,20 @@ def get_all_uses_by_district(
     if not zr_uses_by_district.empty:
         zr_uses_by_district.loc[:, "Permitted reason"] = "ZR use name"
         zr_uses_by_district.loc[:, "Permitted value"] = zr_uses_by_district["Use Name"]
-        zr_uses_by_district_columns = [
+        first_columns = [
             "Zoning District",
             "Use Group",
             "Use Name",
             "Is Allowed",
-        ] + ZR_URL_COLUMNS
-        zr_uses_by_district = _reorder_columns(
-            zr_uses_by_district, zr_uses_by_district_columns
+        ]
+        zr_uses_by_district = _prepare_results_columns(
+            zr_uses_by_district, first_columns, minimal_columns
         )
 
-    return pd.concat([zr_uses_by_district, naics_indexes_by_district]).reset_index(
+    results = pd.concat([zr_uses_by_district, naics_indexes_by_district]).reset_index(
         drop=True
     )
+    return results
 
 
 def get_district_uses_by_naics_index(
@@ -223,9 +240,4 @@ def get_district_uses_by_naics_index(
         "Permitted reason",
         "Permitted value",
     ]
-    primary_columns = first_columns + ZR_URL_COLUMNS
-    reordered = _reorder_columns(results, primary_columns)
-
-    if minimal_columns:
-        return reordered.loc[:, primary_columns]
-    return reordered
+    return _prepare_results_columns(results, first_columns, minimal_columns)
