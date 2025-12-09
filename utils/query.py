@@ -26,9 +26,9 @@ def _clean_falsy_values(df: pd.DataFrame) -> pd.DataFrame:
     # replace all falsy values with an empty string
     df = df.copy()
     for col in df.columns:
-        df[col] = df[col].fillna("")
         df[col] = df[col].replace(False, "")
         df[col] = df[col].replace("False", "")
+        df[col] = df[col].fillna("")
     return df
 
 
@@ -222,12 +222,21 @@ def get_district_uses_by_naics_index(
             uses_by_zoning_district["Use Name"] == results["Use Name"].iloc[0]
         ]
         all_use_districts = all_use_districts[
-            ["Use Name", "Zoning District", "Is Allowed"]
+            ["Use Group", "Use Name", "Zoning District", "Is Allowed"]
         ]
+        all_use_districts["NAICS Title"] = naics_title
+        all_use_districts["NAICS Code"] = naics_codes_single["NAICS Code"].iloc[0]
         results = all_use_districts.merge(
             results,
             how="left",
-            on=["Use Name", "Zoning District"],
+            on=[
+                "NAICS Title",
+                "NAICS Code",
+                "Use Group",
+                "Use Name",
+                "Zoning District",
+                "Is Allowed",
+            ],
         )
 
     first_columns = [

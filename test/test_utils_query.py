@@ -221,7 +221,7 @@ def test_get_district_uses_by_naics_index():
                 "Shouldn't matter",
                 "12312, 123141",
                 "Shouldn't matter either",
-                False,
+                "",
             ],
             [
                 "Allowed in both",
@@ -238,7 +238,7 @@ def test_get_district_uses_by_naics_index():
                 "Shouldn't matter",
                 "12312, 123141",
                 "Shouldn't matter either",
-                False,
+                "",
             ],
         ],
     )
@@ -283,6 +283,7 @@ def test_get_district_uses_by_naics_index_not_addressed():
 def test_get_district_uses_by_naics_index_all_districts():
     district_uses = pd.DataFrame(
         columns=[
+            "Use Group",
             "Use Name",
             "Use NAICS Code",
             "NAICS index names to include",
@@ -294,6 +295,7 @@ def test_get_district_uses_by_naics_index_all_districts():
         ],
         data=[
             [
+                "A group",
                 "A use",
                 "123",
                 "Shouldn't matter",
@@ -304,6 +306,7 @@ def test_get_district_uses_by_naics_index_all_districts():
                 "Yes",
             ],
             [
+                "A group",
                 "A use",
                 "123",
                 "Shouldn't matter",
