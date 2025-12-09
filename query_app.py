@@ -479,20 +479,6 @@ def _(pd):
             name_search["Permitted value"] = name_search["NAICS Title"]
 
             mapping_names = permitted_district_uses.copy()
-            # Build mapping by exploded NAICS index names to include (if present)
-            # Also explode any comma-delimited `Use NAICS Code` so each name mapping
-            # row refers to a single code (e.g. "456 (select)") when merging below.
-            # Explode `Use NAICS Code`, but drop short numeric codes (e.g., 3-digit
-            # group codes like "123") so name-based matches don't get attached to
-            # plain numeric entries. Those numeric codes are already handled by
-            # the code-based search above.
-            mapping_names = explode_delimited_lists(
-                mapping_names,
-                "Use NAICS Code",
-                ",",
-                convert_to_str=True,
-                drop_short_numeric_max_len=6,
-            )
 
             mapping_names.loc[:, "NAICS index names to include"] = (
                 mapping_names["NAICS index names to include"]
@@ -711,6 +697,7 @@ def _(pd):
         ][permitted_use_codes.columns.to_list()].reset_index(drop=True)
 
         return reduced_use_names
+
     return (
         exclude_naics_codes,
         exclude_naics_names,
@@ -811,7 +798,9 @@ def _(
         district_uses = uses_by_zoning_district[
             uses_by_zoning_district["Zoning District"] == zoning_distrct
         ]
-        permitted_indexes = find_permitted_naics_indexes(district_uses, naics_codes)
+        permitted_indexes = find_permitted_naics_indexes(
+            district_uses, naics_codes
+        )
         if permitted_indexes is None:
             return None
 

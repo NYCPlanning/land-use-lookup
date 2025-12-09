@@ -123,7 +123,11 @@ def test_find_permitted_naics_indexes_names():
         ],
     )
     actual = find_permitted_naics_indexes(district_uses, naics_codes)
-    assert actual["Use NAICS Code"].to_list() == ["123", "456 (select)", "456 (select)"]
+    assert actual["Use NAICS Code"].to_list() == [
+        "123",
+        "123, 456 (select)",
+        "123, 456 (select)",
+    ]
     assert actual["NAICS Code"].to_list() == ["123111", "456111", "789111"]
     assert actual["NAICS Title"].to_list() == [
         "Industry to include",

@@ -274,16 +274,28 @@ def _(naics_codes, naics_title_escape_rooms, uses_by_zoning_district):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
-    ...
+    **Day spas**
+
+    Day spas (NAICS index name – under Health and fitness use name) should be allowed in C3 districts with additional conditions and open use allowances
     """)
     return
 
 
 @app.cell
-def _():
+def _(naics_codes, uses_by_zoning_district):
+    naics_title_day_spas = "Day spas"
+    naics_codes[
+        naics_codes["NAICS Title"] == naics_title_day_spas
+    ].reset_index(drop=True)
+
+    get_district_uses_by_naics_index(
+        uses_by_zoning_district,
+        naics_codes,
+        naics_title_day_spas,
+    )
     return
 
 
