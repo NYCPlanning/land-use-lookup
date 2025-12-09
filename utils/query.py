@@ -104,6 +104,7 @@ def get_naics_indexes_by_district(
 
     first_columns = [
         "Zoning District",
+        "Use Group",
         "Use Name",
         "Is Allowed",
         "NAICS Title",
@@ -118,11 +119,45 @@ def get_naics_indexes_by_district(
     return reordered
 
 
+def get_all_uses_by_district(
+    uses_by_zoning_district: pd.DataFrame,
+    zoning_distrct: str,
+    naics_codes: pd.DataFrame,
+    minimal_columns: bool = False,
+):
+    naics_indexes_by_district = get_naics_indexes_by_district(
+        uses_by_zoning_district, zoning_distrct, naics_codes, minimal_columns
+    )
+
+    zr_uses_by_district = uses_by_zoning_district[
+        (uses_by_zoning_district["Zoning District"] == zoning_distrct)
+        & (uses_by_zoning_district["Use NAICS Code"].isna())
+        & ~uses_by_zoning_district["Not permitted"]
+    ].copy()
+    if not zr_uses_by_district.empty:
+        zr_uses_by_district.loc[:, "Permitted reason"] = "ZR use name"
+        zr_uses_by_district.loc[:, "Permitted value"] = zr_uses_by_district["Use Name"]
+        zr_uses_by_district_columns = [
+            "Zoning District",
+            "Use Group",
+            "Use Name",
+            "Is Allowed",
+        ] + ZR_URL_COLUMNS
+        zr_uses_by_district = _reorder_columns(
+            zr_uses_by_district, zr_uses_by_district_columns
+        )
+
+    return pd.concat([zr_uses_by_district, naics_indexes_by_district]).reset_index(
+        drop=True
+    )
+
+
 def get_district_uses_by_naics_index(
     uses_by_zoning_district: pd.DataFrame,
     naics_codes: pd.DataFrame,
     naics_title: str,
     minimal_columns: bool = False,
+    include_all_districts: bool = False,
 ) -> pd.DataFrame:
     """Return zoning-district-level permitted uses for a given NAICS title.
 
@@ -163,10 +198,25 @@ def get_district_uses_by_naics_index(
         districts_results.append(district_result)
 
     results = pd.concat(districts_results, ignore_index=True)
+    if not results.empty:
+        assert len(results["Use Name"].unique().tolist()) == 1
+    if include_all_districts:
+        all_use_districts = uses_by_zoning_district[
+            uses_by_zoning_district["Use Name"] == results["Use Name"].iloc[0]
+        ]
+        all_use_districts = all_use_districts[
+            ["Use Name", "Zoning District", "Is Allowed"]
+        ]
+        results = all_use_districts.merge(
+            results,
+            how="left",
+            on=["Use Name", "Zoning District"],
+        )
 
     first_columns = [
         "NAICS Title",
         "NAICS Code",
+        "Use Group",
         "Use Name",
         "Zoning District",
         "Is Allowed",

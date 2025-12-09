@@ -166,6 +166,8 @@ def _(pd):
     def format_ui_table(data: pd.DataFrame):
         if data.empty:
             return "No results, try again."
+        if "Use Group" in data.columns:
+            data = data.sort_values(by=["Use Group", "Use Name", "NAICS Title"]).reset_index(drop=True)
         return mo.ui.table(
             data,
             page_size=25,
@@ -177,10 +179,25 @@ def _(pd):
 
 @app.cell
 def _(
+    selected_district,
+    uses_by_zoning_district,
+    uses_by_zoning_district_minimal,
+):
+
+    uses_by_zoning_district_minimal[
+            (uses_by_zoning_district["Zoning District"] == selected_district)
+        # & (uses_by_zoning_district["Use NAICS Code"] == "")
+        & ~uses_by_zoning_district["Not permitted"]
+    ]
+    return
+
+
+@app.cell
+def _(
     format_ui_table,
+    get_all_uses_by_district,
     get_district_uses_by_naics_index,
     get_district_uses_by_zr_use,
-    get_naics_indexes_by_district,
     naics_codes,
     selected_district,
     selected_use_name,
@@ -190,7 +207,7 @@ def _(
     # by district
     by_district_result = (
         format_ui_table(
-            get_naics_indexes_by_district(
+            get_all_uses_by_district(
                 uses_by_zoning_district_minimal,
                 selected_district,
                 naics_codes,
@@ -313,6 +330,7 @@ def _(uses_by_zoning_district):
 
     uses_by_zoning_district_minimal = uses_by_zoning_district_minimal[
         [
+            "Use Group",
             "Use Name",
             "Use NAICS Code",
             "NAICS index names to include",
@@ -467,7 +485,11 @@ def _(pd):
             # may have a semicolon-delimited list of codes
             split_names_to_include = names_to_include.str.split(";")
             names_to_include = pd.Series(
-                [item.strip() for sublist in split_names_to_include for item in sublist]
+                [
+                    item.strip()
+                    for sublist in split_names_to_include
+                    for item in sublist
+                ]
             )
 
             name_search = (
@@ -486,7 +508,9 @@ def _(pd):
                 .astype(str)
                 .str.split(";")
                 .apply(
-                    lambda lst: [s.strip() for s in lst] if isinstance(lst, list) else lst
+                    lambda lst: [s.strip() for s in lst]
+                    if isinstance(lst, list)
+                    else lst
                 )
             )
             mapping_names = mapping_names.explode(
@@ -552,7 +576,8 @@ def _(pd):
                     s.strip()
                     for s in lst
                     if not (
-                        s.strip().isdigit() and len(s.strip()) <= drop_short_numeric_max_len
+                        s.strip().isdigit()
+                        and len(s.strip()) <= drop_short_numeric_max_len
                     )
                 ]
             return [s.strip() for s in lst]
@@ -637,7 +662,9 @@ def _(pd):
         """
 
         permitted_district_uses = district_uses[
-            district_uses["Use NAICS Code"].isin(permitted_use_codes["Permitted value"])
+            district_uses["Use NAICS Code"].isin(
+                permitted_use_codes["Permitted value"]
+            )
         ]
         # Split and explode comma-separated lists of codes
         exploded_exclusions = explode_delimited_lists(
@@ -649,9 +676,9 @@ def _(pd):
         ].apply(explode_code)
         # After expanding each value to a list of 6-digit codes, explode those lists
         # into individual rows so each row contains a single 6-digit code.
-        exploded_exclusions = exploded_exclusions.explode("NAICS to subtract").reset_index(
-            drop=True
-        )
+        exploded_exclusions = exploded_exclusions.explode(
+            "NAICS to subtract"
+        ).reset_index(drop=True)
 
         reduced_use_codes_indicated = permitted_use_codes.merge(
             exploded_exclusions,
@@ -697,7 +724,6 @@ def _(pd):
         ][permitted_use_codes.columns.to_list()].reset_index(drop=True)
 
         return reduced_use_names
-
     return (
         exclude_naics_codes,
         exclude_naics_names,
@@ -798,9 +824,7 @@ def _(
         district_uses = uses_by_zoning_district[
             uses_by_zoning_district["Zoning District"] == zoning_distrct
         ]
-        permitted_indexes = find_permitted_naics_indexes(
-            district_uses, naics_codes
-        )
+        permitted_indexes = find_permitted_naics_indexes(district_uses, naics_codes)
         if permitted_indexes is None:
             return None
 
@@ -812,6 +836,7 @@ def _(
 
         first_columns = [
             "Zoning District",
+            "Use Group",
             "Use Name",
             "Is Allowed",
             "NAICS Title",
@@ -826,11 +851,45 @@ def _(
         return reordered
 
 
+    def get_all_uses_by_district(
+        uses_by_zoning_district: pd.DataFrame,
+        zoning_distrct: str,
+        naics_codes: pd.DataFrame,
+        minimal_columns: bool = False,
+    ):
+        naics_indexes_by_district = get_naics_indexes_by_district(
+            uses_by_zoning_district, zoning_distrct, naics_codes, minimal_columns
+        )
+
+        zr_uses_by_district = uses_by_zoning_district[
+            (uses_by_zoning_district["Zoning District"] == zoning_distrct)
+            & (uses_by_zoning_district["Use NAICS Code"].isna())
+            & ~uses_by_zoning_district["Not permitted"]
+        ].copy()
+        if not zr_uses_by_district.empty:
+            zr_uses_by_district.loc[:, "Permitted reason"] = "ZR use name"
+            zr_uses_by_district.loc[:, "Permitted value"] = zr_uses_by_district["Use Name"]
+            zr_uses_by_district_columns = [
+                "Zoning District",
+                "Use Group",
+                "Use Name",
+                "Is Allowed",
+            ] + ZR_URL_COLUMNS
+            zr_uses_by_district = _reorder_columns(
+                zr_uses_by_district, zr_uses_by_district_columns
+            )
+
+        return pd.concat([zr_uses_by_district, naics_indexes_by_district]).reset_index(
+            drop=True
+        )
+
+
     def get_district_uses_by_naics_index(
         uses_by_zoning_district: pd.DataFrame,
         naics_codes: pd.DataFrame,
         naics_title: str,
         minimal_columns: bool = False,
+        include_all_districts: bool = False,
     ) -> pd.DataFrame:
         """Return zoning-district-level permitted uses for a given NAICS title.
 
@@ -871,10 +930,25 @@ def _(
             districts_results.append(district_result)
 
         results = pd.concat(districts_results, ignore_index=True)
+        if not results.empty:
+            assert len(results["Use Name"].unique().tolist()) == 1
+        if include_all_districts:
+            all_use_districts = uses_by_zoning_district[
+                uses_by_zoning_district["Use Name"] == results["Use Name"].iloc[0]
+            ]
+            all_use_districts = all_use_districts[
+                ["Use Name", "Zoning District", "Is Allowed"]
+            ]
+            results = all_use_districts.merge(
+                results,
+                how="left",
+                on=["Use Name", "Zoning District"],
+            )
 
         first_columns = [
             "NAICS Title",
             "NAICS Code",
+            "Use Group",
             "Use Name",
             "Zoning District",
             "Is Allowed",
@@ -888,9 +962,9 @@ def _(
             return reordered.loc[:, primary_columns]
         return reordered
     return (
+        get_all_uses_by_district,
         get_district_uses_by_naics_index,
         get_district_uses_by_zr_use,
-        get_naics_indexes_by_district,
     )
 
 

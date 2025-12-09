@@ -1,6 +1,8 @@
 import pandas as pd
+import numpy as np
 from utils.query import (
     get_naics_indexes_by_district,
+    get_all_uses_by_district,
     get_district_uses_by_naics_index,
 )
 
@@ -50,6 +52,47 @@ def test_get_naics_indexes_by_district():
     assert actual["NAICS Code"].to_list() == ["123111", "123131"]
 
 
+def test_get_all_uses_by_district():
+    district_uses = pd.DataFrame(
+        columns=[
+            "Use Name",
+            "Use NAICS Code",
+            "NAICS to subtract",
+            "NAICS index names to subtract",
+            "Zoning District",
+            "Not permitted",
+            "Is Allowed",
+        ],
+        data=[
+            ["A", np.nan, np.nan, np.nan, "A1", False, "Yes of course"],
+            ["B", "123", "12312, 123131", "", "A1", False, "Yes kinda"],
+        ],
+    )
+
+    naics_codes = pd.DataFrame(
+        columns=[
+            "NAICS Code",
+            "Five-digit Group Code",
+            "Four-digit Group Code",
+            "Three-digit Group Code",
+            "NAICS Title",
+        ],
+        data=[
+            ["123111", "12311", "1231", "123", "Shouldn't matter"],
+            ["123121", "12312", "1231", "123", "Shouldn't matter"],
+            ["123131", "12313", "1231", "123", "Shouldn't matter"],
+        ],
+    )
+    actual = get_all_uses_by_district(
+        district_uses,
+        "A1",
+        naics_codes,
+    )
+    print(actual["Permitted reason"])
+    assert actual["Is Allowed"].to_list() == ["Yes of course", "Yes kinda"]
+    assert actual["NAICS Code"].to_list() == [np.nan, "123111"]
+
+
 def test_get_naics_indexes_by_district_mock_m2(
     mock_uses_by_zoning_district: pd.DataFrame, mock_naics_codes: pd.DataFrame
 ):
@@ -86,6 +129,7 @@ def test_get_naics_indexes_by_district_mock_c1(
 def test_get_district_uses_by_naics_index():
     district_uses = pd.DataFrame(
         columns=[
+            "Use Name",
             "Use NAICS Code",
             "NAICS index names to include",
             "NAICS to subtract",
@@ -96,6 +140,7 @@ def test_get_district_uses_by_naics_index():
         ],
         data=[
             [
+                "A use",
                 "123",
                 "Shouldn't matter",
                 "12312, 123141",
@@ -105,6 +150,7 @@ def test_get_district_uses_by_naics_index():
                 "Yes",
             ],
             [
+                "A use",
                 "123",
                 "Shouldn't matter",
                 "12312, 123141",
@@ -114,6 +160,7 @@ def test_get_district_uses_by_naics_index():
                 "Yes pretty much",
             ],
             [
+                "A use",
                 "456",
                 "Shouldn't matter",
                 "456",
@@ -144,6 +191,7 @@ def test_get_district_uses_by_naics_index():
         columns=[
             "NAICS Title",
             "NAICS Code",
+            "Use Name",
             "Zoning District",
             "Is Allowed",
             "Permitted reason",
@@ -161,6 +209,7 @@ def test_get_district_uses_by_naics_index():
             [
                 "Allowed in both",
                 "123111",
+                "A use",
                 "A1",
                 "Yes",
                 "Three-digit Group Code",
@@ -177,6 +226,7 @@ def test_get_district_uses_by_naics_index():
             [
                 "Allowed in both",
                 "123111",
+                "A use",
                 "A2",
                 "Yes pretty much",
                 "Three-digit Group Code",
@@ -228,3 +278,60 @@ def test_get_district_uses_by_naics_index_not_addressed():
     actual = get_district_uses_by_naics_index(district_uses, naics_codes, naics_title)
 
     assert actual.empty
+
+
+def test_get_district_uses_by_naics_index_all_districts():
+    district_uses = pd.DataFrame(
+        columns=[
+            "Use Name",
+            "Use NAICS Code",
+            "NAICS index names to include",
+            "NAICS to subtract",
+            "NAICS index names to subtract",
+            "Zoning District",
+            "Not permitted",
+            "Is Allowed",
+        ],
+        data=[
+            [
+                "A use",
+                "123",
+                "Shouldn't matter",
+                "12312, 123141",
+                "Shouldn't matter either",
+                "A1",
+                False,
+                "Yes",
+            ],
+            [
+                "A use",
+                "123",
+                "Shouldn't matter",
+                "12312, 123141",
+                "Shouldn't matter either",
+                "A2",
+                True,
+                "Nope",
+            ],
+        ],
+    )
+    naics_codes = pd.DataFrame(
+        columns=[
+            "NAICS Code",
+            "NAICS Title",
+            "Five-digit Group Code",
+            "Four-digit Group Code",
+            "Three-digit Group Code",
+        ],
+        data=[
+            ["123111", "Allowed in A1", "12311", "1231", "123"],
+        ],
+    )
+    naics_title = "Allowed in A1"
+
+    actual = get_district_uses_by_naics_index(
+        district_uses, naics_codes, naics_title, include_all_districts=True
+    )
+
+    assert len(actual) == 2
+    assert actual["Zoning District"].unique().tolist() == ["A1", "A2"]
