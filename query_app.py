@@ -179,21 +179,6 @@ def _(pd):
 
 @app.cell
 def _(
-    selected_district,
-    uses_by_zoning_district,
-    uses_by_zoning_district_minimal,
-):
-
-    uses_by_zoning_district_minimal[
-            (uses_by_zoning_district["Zoning District"] == selected_district)
-        # & (uses_by_zoning_district["Use NAICS Code"] == "")
-        & ~uses_by_zoning_district["Not permitted"]
-    ]
-    return
-
-
-@app.cell
-def _(
     format_ui_table,
     get_all_uses_by_district,
     get_district_uses_by_naics_index,
