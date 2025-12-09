@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.17.6"
+__generated_with = "0.18.3"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -227,8 +227,34 @@ def _(naics_codes, naics_title_escape_rooms, uses_by_zoning_district):
 def _(uses_by_zoning_district):
     uses_by_zoning_district[
         uses_by_zoning_district["Use Name"]
+        == "#Select entertainment facilities#"
+    ]
+    return
+
+
+@app.cell
+def _(uses_by_zoning_district):
+    uses_by_zoning_district[
+        uses_by_zoning_district["Use Name"]
         == "#Amusement or recreation facilities#"
     ]
+    return
+
+
+@app.cell
+def _(uses_by_zoning_district):
+    _district_uses = uses_by_zoning_district[
+        uses_by_zoning_district["Use Name"]
+        == "#Amusement or recreation facilities#"
+    ]
+    exploded_exclusions = explode_delimited_lists(
+        _district_uses, "NAICS index names to subtract", ";"
+    ).dropna(subset=["NAICS index names to subtract"])
+    # Split and explode comma-separated lists of codes to join to permitted uses
+    exploded_exclusions = explode_delimited_lists(
+        exploded_exclusions, "Use NAICS Code",
+    ).dropna(subset=["Use NAICS Code"])
+    exploded_exclusions
     return
 
 
@@ -238,28 +264,13 @@ def _(naics_codes, naics_title_escape_rooms, uses_by_zoning_district):
         naics_codes["NAICS Title"] == naics_title_escape_rooms
     ].reset_index(drop=True)
 
-    permitted_district_uses = uses_by_zoning_district[
-        ~uses_by_zoning_district["Not permitted"]
+    _uses = uses_by_zoning_district[
+        uses_by_zoning_district["Use Name"]
+        == "#Amusement or recreation facilities#"
     ]
+    _uses_c1 = _uses[_uses["Zoning District"] == "C1"]
 
-    names_to_include = (
-        permitted_district_uses["NAICS index names to include"]
-        .dropna()
-        .sort_values()
-        .reset_index(drop=True)
-    )
-    # may have a semicolon-delimited list of codes
-    split_names_to_include = names_to_include.str.split(";")
-    names_to_include = pd.Series(
-        [item.strip() for sublist in split_names_to_include for item in sublist]
-    )
-
-    name_search = (
-        _naics_codes[_naics_codes["NAICS Title"].isin(names_to_include)]
-        .sort_values(by="NAICS Title")
-        .reset_index(drop=True)
-    )
-    name_search
+    get_naics_indexes_by_district(_uses, "C1", _naics_codes)
     return
 
 

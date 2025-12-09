@@ -141,7 +141,7 @@ def test_explode_delimited_lists():
             ["1231", "d"],
         ],
     )
-    actual = input.pipe(explode_delimited_lists, "listy")
+    actual = explode_delimited_lists(input, "listy")
     expected = pd.DataFrame(
         columns=["id", "listy"],
         data=[
@@ -152,6 +152,22 @@ def test_explode_delimited_lists():
         ],
     )
     pd.testing.assert_frame_equal(actual, expected)
+
+
+def test_explode_delimited_lists_spaces():
+    input = pd.DataFrame(
+        columns=["id", "listy"],
+        data=[
+            [
+                "123",
+                "Aerobic dance and exercise centers; Athletic club facilities, physical fitness; Body building studios, physical fitness; Dance centers, aerobic; Exercise centers; Fitness centers; Fitness salons; Fitness spas without accommodations; Gymnasiums; Gyms, physical fitness; Handball club facilities; Health club facilities, physical fitness; Health spas without accommodations, physical fitness; Health studios, physical fitness; Physical fitness centers; Physical fitness facilities; Physical fitness studios; Pilates fitness studios or centers; Racquetball club facilities; Recreational sports club facilities; Spas without accommodations, fitness; Sports club facilities, physical fitness; Squash club facilities; Strength development centers; Tennis club facilities; Tennis courts; Weight training centers; Yoga fitness studios or centers; Billiard parlors; Billiard rooms; Pool halls; Pool parlors;  Pool rooms;  Escape rooms; Racetracks, slot car (i.e., amusement devices)",
+            ],
+            ["1231", "d"],
+        ],
+    )
+    actual = explode_delimited_lists(input, "listy", delimiter=";")
+    assert len(actual) == 36
+    assert "Escape rooms" in actual["listy"].to_list()
 
 
 def test_explode_code():
@@ -216,7 +232,7 @@ def test_exclude_naics_names():
         columns=["Use NAICS Code", "NAICS index names to subtract"],
         data=[
             ["123", "Industry to drop"],
-            ["1234", "Other industry to drop;Another industry to drop"],
+            ["1234", "Other industry to drop; Another industry to drop"],
         ],
     )
     actual = exclude_naics_names(permitted_use_codes, district_uses)

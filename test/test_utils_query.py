@@ -7,21 +7,22 @@ from utils.query import (
 pd.set_option("display.max_columns", None)
 
 
-def test_query_naics_codes():
+def test_get_naics_indexes_by_district():
     district_uses = pd.DataFrame(
         columns=[
             "Use Name",
             "Use NAICS Code",
             "NAICS to subtract",
+            "NAICS index names to subtract",
             "Zoning District",
             "Not permitted",
             "Is Allowed",
         ],
         data=[
-            ["A", "123", "12312, 123141", "A1", False, "Yes kinda"],
-            ["B", "456", "456", "A1", True, "No"],
-            ["A", "123", "12312, 123141", "A2", False, "Yes kinda"],
-            ["B", "456", "456", "A2", True, "No"],
+            ["A", "123", "12312, 123141", "", "A1", False, "Yes kinda"],
+            ["B", "456", "456", "", "A1", True, "No"],
+            ["A", "123", "12312, 123141", "", "A2", False, "Yes kinda"],
+            ["B", "456", "456", "", "A2", True, "No"],
         ],
     )
 
@@ -31,12 +32,13 @@ def test_query_naics_codes():
             "Five-digit Group Code",
             "Four-digit Group Code",
             "Three-digit Group Code",
+            "NAICS Title",
         ],
         data=[
-            ["123111", "12311", "1231", "123"],
-            ["123121", "12312", "1231", "123"],
-            ["123131", "12313", "1231", "123"],
-            ["123141", "12314", "1231", "123"],
+            ["123111", "12311", "1231", "123", "Shouldn't matter"],
+            ["123121", "12312", "1231", "123", "Shouldn't matter"],
+            ["123131", "12313", "1231", "123", "Shouldn't matter"],
+            ["123141", "12314", "1231", "123", "Shouldn't matter"],
         ],
     )
     actual = get_naics_indexes_by_district(
@@ -48,7 +50,7 @@ def test_query_naics_codes():
     assert actual["NAICS Code"].to_list() == ["123111", "123131"]
 
 
-def test_query_naics_codes_mock(
+def test_get_naics_indexes_by_district_mock_m2(
     mock_uses_by_zoning_district: pd.DataFrame, mock_naics_codes: pd.DataFrame
 ):
     actual = get_naics_indexes_by_district(
@@ -64,27 +66,62 @@ def test_query_naics_codes_mock(
     assert len(actual[actual["Four-digit Group Code"] == "3117"]) == 0
 
 
+def test_get_naics_indexes_by_district_mock_c1(
+    mock_uses_by_zoning_district: pd.DataFrame, mock_naics_codes: pd.DataFrame
+):
+    actual = get_naics_indexes_by_district(
+        mock_uses_by_zoning_district,
+        "C1",
+        mock_naics_codes,
+    )
+    assert (
+        len(mock_naics_codes[mock_naics_codes["Five-digit Group Code"] == "71399"])
+        == 117
+    )
+    assert len(actual) == 110
+    assert len(actual[actual["Permitted value"] == "71399"]) == 110
+    assert len(actual[actual["NAICS Title"] == "Escape rooms"]) == 0
+
+
 def test_get_district_uses_by_naics_index():
     district_uses = pd.DataFrame(
         columns=[
             "Use NAICS Code",
             "NAICS index names to include",
             "NAICS to subtract",
+            "NAICS index names to subtract",
             "Zoning District",
             "Not permitted",
             "Is Allowed",
         ],
         data=[
-            ["123", "Shouldn't matter", "12312, 123141", "A1", False, "Yes"],
             [
                 "123",
                 "Shouldn't matter",
                 "12312, 123141",
+                "Shouldn't matter either",
+                "A1",
+                False,
+                "Yes",
+            ],
+            [
+                "123",
+                "Shouldn't matter",
+                "12312, 123141",
+                "Shouldn't matter either",
                 "A2",
                 False,
                 "Yes pretty much",
             ],
-            ["456", "Shouldn't matter", "456", "A1", True, "No"],
+            [
+                "456",
+                "Shouldn't matter",
+                "456",
+                "Shouldn't matter either",
+                "A1",
+                True,
+                "No",
+            ],
         ],
     )
     naics_codes = pd.DataFrame(
@@ -117,6 +154,7 @@ def test_get_district_uses_by_naics_index():
             "Use NAICS Code",
             "NAICS index names to include",
             "NAICS to subtract",
+            "NAICS index names to subtract",
             "Not permitted",
         ],
         data=[
@@ -133,6 +171,7 @@ def test_get_district_uses_by_naics_index():
                 "123",
                 "Shouldn't matter",
                 "12312, 123141",
+                "Shouldn't matter either",
                 False,
             ],
             [
@@ -148,6 +187,7 @@ def test_get_district_uses_by_naics_index():
                 "123",
                 "Shouldn't matter",
                 "12312, 123141",
+                "Shouldn't matter either",
                 False,
             ],
         ],
@@ -162,12 +202,13 @@ def test_get_district_uses_by_naics_index_not_addressed():
             "Use NAICS Code",
             "NAICS index names to include",
             "NAICS to subtract",
+            "NAICS index names to subtract",
             "Zoning District",
             "Not permitted",
             "Is Allowed",
         ],
         data=[
-            ["123", "The only ZR use", "12312, 123141", "A1", False, "Yes"],
+            ["123", "The only ZR use", "12312, 123141", "", "A1", False, "Yes"],
         ],
     )
     naics_codes = pd.DataFrame(
