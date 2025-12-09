@@ -3,6 +3,7 @@ import pandas as pd
 from utils.query_helpers import (
     find_permitted_naics_indexes,
     exclude_naics_codes,
+    exclude_naics_names,
 )
 
 ZR_URL_COLUMNS = [
@@ -94,7 +95,9 @@ def get_naics_indexes_by_district(
     permitted_indexes = find_permitted_naics_indexes(district_uses, naics_codes)
     if permitted_indexes is None:
         return None
-    results = exclude_naics_codes(permitted_indexes, district_uses)
+    codes_excluded = exclude_naics_codes(permitted_indexes, district_uses)
+    names_excluded = exclude_naics_names(codes_excluded, district_uses)
+
     first_columns = [
         "Zoning District",
         "Use Name",
@@ -105,7 +108,7 @@ def get_naics_indexes_by_district(
         "Permitted value",
     ]
     primary_columns = first_columns + ZR_URL_COLUMNS
-    reordered = _reorder_columns(results, primary_columns)
+    reordered = _reorder_columns(names_excluded, primary_columns)
     if minimal_columns:
         return reordered.loc[:, primary_columns]
     return reordered

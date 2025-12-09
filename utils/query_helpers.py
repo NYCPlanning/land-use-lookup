@@ -306,8 +306,8 @@ def exclude_naics_codes(
         district_uses["Use NAICS Code"].isin(permitted_use_codes["Permitted value"])
     ]
     # Split and explode comma-separated lists of codes
-    exploded_exclusions = permitted_district_uses.pipe(
-        explode_delimited_lists, "NAICS to subtract"
+    exploded_exclusions = explode_delimited_lists(
+        permitted_district_uses, "NAICS to subtract"
     ).dropna(subset=["NAICS to subtract"])
     # Explode 6-or-less-digit codes to lists of 6-digit codes
     exploded_exclusions["NAICS to subtract"] = exploded_exclusions[
@@ -339,12 +339,14 @@ def exclude_naics_names(
     permitted_use_codes: pd.DataFrame,
     district_uses: pd.DataFrame,
 ) -> pd.DataFrame:
+    if "NAICS index names to subtract" not in district_uses.columns:
+        return permitted_use_codes
     permitted_district_uses = district_uses[
         district_uses["Use NAICS Code"].isin(permitted_use_codes["Permitted value"])
     ]
     # Split and explode semicolon-separated lists of names
-    exploded_exclusions = permitted_district_uses.pipe(
-        explode_delimited_lists, "NAICS index names to subtract", ";"
+    exploded_exclusions = explode_delimited_lists(
+        permitted_district_uses, "NAICS index names to subtract", ";"
     ).dropna(subset=["NAICS index names to subtract"])
     # After expanding each value to a list of 6-digit codes, explode those lists
     # into individual rows so each row contains a single 6-digit code.

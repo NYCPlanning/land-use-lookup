@@ -219,7 +219,7 @@ def test_exclude_naics_names():
             ["1234", "Other industry to drop;Another industry to drop"],
         ],
     )
-    actual = permitted_use_codes.pipe(exclude_naics_names, district_uses)
+    actual = exclude_naics_names(permitted_use_codes, district_uses)
     expected = pd.DataFrame(
         columns=["Permitted value", "NAICS Code", "NAICS Title"],
         data=[
