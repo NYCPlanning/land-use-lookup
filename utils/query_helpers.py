@@ -143,7 +143,7 @@ def find_permitted_naics_indexes(
             "Use NAICS Code",
             ",",
             convert_to_str=True,
-            drop_short_numeric_max_len=3,
+            drop_short_numeric_max_len=6,
         )
 
         mapping_names.loc[:, "NAICS index names to include"] = (
@@ -339,20 +339,15 @@ def exclude_naics_names(
     permitted_use_codes: pd.DataFrame,
     district_uses: pd.DataFrame,
 ) -> pd.DataFrame:
-    if "NAICS index names to subtract" not in district_uses.columns:
-        return permitted_use_codes
-    permitted_district_uses = district_uses[
-        district_uses["Use NAICS Code"].isin(permitted_use_codes["Permitted value"])
-    ]
     # Split and explode semicolon-separated lists of names
     exploded_exclusions = explode_delimited_lists(
-        permitted_district_uses, "NAICS index names to subtract", ";"
+        district_uses, "NAICS index names to subtract", ";"
     ).dropna(subset=["NAICS index names to subtract"])
-    # After expanding each value to a list of 6-digit codes, explode those lists
-    # into individual rows so each row contains a single 6-digit code.
-    exploded_exclusions = exploded_exclusions.explode(
-        "NAICS index names to subtract"
-    ).reset_index(drop=True)
+    # Split and explode comma-separated lists of codes to join to permitted uses
+    exploded_exclusions = explode_delimited_lists(
+        exploded_exclusions,
+        "Use NAICS Code",
+    ).dropna(subset=["Use NAICS Code"])
 
     reduced_use_names_indicated = permitted_use_codes.merge(
         exploded_exclusions,

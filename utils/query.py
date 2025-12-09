@@ -95,7 +95,11 @@ def get_naics_indexes_by_district(
     permitted_indexes = find_permitted_naics_indexes(district_uses, naics_codes)
     if permitted_indexes is None:
         return None
+
     codes_excluded = exclude_naics_codes(permitted_indexes, district_uses)
+    assert "NAICS index names to subtract" in district_uses.columns, (
+        "Column 'NAICS index names to subtract' missing from District Uses data"
+    )
     names_excluded = exclude_naics_names(codes_excluded, district_uses)
 
     first_columns = [

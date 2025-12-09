@@ -467,11 +467,7 @@ def _(pd):
             # may have a semicolon-delimited list of codes
             split_names_to_include = names_to_include.str.split(";")
             names_to_include = pd.Series(
-                [
-                    item.strip()
-                    for sublist in split_names_to_include
-                    for item in sublist
-                ]
+                [item.strip() for sublist in split_names_to_include for item in sublist]
             )
 
             name_search = (
@@ -495,7 +491,7 @@ def _(pd):
                 "Use NAICS Code",
                 ",",
                 convert_to_str=True,
-                drop_short_numeric_max_len=3,
+                drop_short_numeric_max_len=6,
             )
 
             mapping_names.loc[:, "NAICS index names to include"] = (
@@ -504,9 +500,7 @@ def _(pd):
                 .astype(str)
                 .str.split(";")
                 .apply(
-                    lambda lst: [s.strip() for s in lst]
-                    if isinstance(lst, list)
-                    else lst
+                    lambda lst: [s.strip() for s in lst] if isinstance(lst, list) else lst
                 )
             )
             mapping_names = mapping_names.explode(
@@ -572,8 +566,7 @@ def _(pd):
                     s.strip()
                     for s in lst
                     if not (
-                        s.strip().isdigit()
-                        and len(s.strip()) <= drop_short_numeric_max_len
+                        s.strip().isdigit() and len(s.strip()) <= drop_short_numeric_max_len
                     )
                 ]
             return [s.strip() for s in lst]
@@ -658,9 +651,7 @@ def _(pd):
         """
 
         permitted_district_uses = district_uses[
-            district_uses["Use NAICS Code"].isin(
-                permitted_use_codes["Permitted value"]
-            )
+            district_uses["Use NAICS Code"].isin(permitted_use_codes["Permitted value"])
         ]
         # Split and explode comma-separated lists of codes
         exploded_exclusions = explode_delimited_lists(
@@ -672,9 +663,9 @@ def _(pd):
         ].apply(explode_code)
         # After expanding each value to a list of 6-digit codes, explode those lists
         # into individual rows so each row contains a single 6-digit code.
-        exploded_exclusions = exploded_exclusions.explode(
-            "NAICS to subtract"
-        ).reset_index(drop=True)
+        exploded_exclusions = exploded_exclusions.explode("NAICS to subtract").reset_index(
+            drop=True
+        )
 
         reduced_use_codes_indicated = permitted_use_codes.merge(
             exploded_exclusions,
@@ -696,22 +687,15 @@ def _(pd):
         permitted_use_codes: pd.DataFrame,
         district_uses: pd.DataFrame,
     ) -> pd.DataFrame:
-        if "NAICS index names to subtract" not in district_uses.columns:
-            return permitted_use_codes
-        permitted_district_uses = district_uses[
-            district_uses["Use NAICS Code"].isin(
-                permitted_use_codes["Permitted value"]
-            )
-        ]
         # Split and explode semicolon-separated lists of names
         exploded_exclusions = explode_delimited_lists(
-            permitted_district_uses, "NAICS index names to subtract", ";"
+            district_uses, "NAICS index names to subtract", ";"
         ).dropna(subset=["NAICS index names to subtract"])
-        # After expanding each value to a list of 6-digit codes, explode those lists
-        # into individual rows so each row contains a single 6-digit code.
-        exploded_exclusions = exploded_exclusions.explode(
-            "NAICS index names to subtract"
-        ).reset_index(drop=True)
+        # Split and explode comma-separated lists of codes to join to permitted uses
+        exploded_exclusions = explode_delimited_lists(
+            exploded_exclusions,
+            "Use NAICS Code",
+        ).dropna(subset=["Use NAICS Code"])
 
         reduced_use_names_indicated = permitted_use_codes.merge(
             exploded_exclusions,
@@ -827,12 +811,14 @@ def _(
         district_uses = uses_by_zoning_district[
             uses_by_zoning_district["Zoning District"] == zoning_distrct
         ]
-        permitted_indexes = find_permitted_naics_indexes(
-            district_uses, naics_codes
-        )
+        permitted_indexes = find_permitted_naics_indexes(district_uses, naics_codes)
         if permitted_indexes is None:
             return None
+
         codes_excluded = exclude_naics_codes(permitted_indexes, district_uses)
+        assert "NAICS index names to subtract" in district_uses.columns, (
+            "Column 'NAICS index names to subtract' missing from District Uses data"
+        )
         names_excluded = exclude_naics_names(codes_excluded, district_uses)
 
         first_columns = [
