@@ -44,8 +44,8 @@ def get_district_uses_by_zr_use(
         A new DataFrame filtered to rows where ``Use Name == use_name``.
     """
     results = uses_by_zoning_district[
-            uses_by_zoning_district["Use Name"] == use_name
-        ].reset_index(drop=True)
+        uses_by_zoning_district["Use Name"] == use_name
+    ].reset_index(drop=True)
     first_columns = [
         "Use Name",
         "Zoning District",
@@ -91,9 +91,10 @@ def get_naics_indexes_by_district(
     district_uses = uses_by_zoning_district[
         uses_by_zoning_district["Zoning District"] == zoning_distrct
     ]
-    results = district_uses.pipe(find_permitted_naics_indexes, naics_codes).pipe(
-        exclude_naics_codes, district_uses
-    )
+    permitted_indexes = find_permitted_naics_indexes(district_uses, naics_codes)
+    if permitted_indexes is None:
+        return None
+    results = exclude_naics_codes(permitted_indexes, district_uses)
     first_columns = [
         "Zoning District",
         "Use Name",
@@ -155,6 +156,7 @@ def get_district_uses_by_naics_index(
         districts_results.append(district_result)
 
     results = pd.concat(districts_results, ignore_index=True)
+
     first_columns = [
         "NAICS Title",
         "NAICS Code",
@@ -166,6 +168,7 @@ def get_district_uses_by_naics_index(
     ]
     primary_columns = first_columns + ZR_URL_COLUMNS
     reordered = _reorder_columns(results, primary_columns)
+
     if minimal_columns:
         return reordered.loc[:, primary_columns]
     return reordered
