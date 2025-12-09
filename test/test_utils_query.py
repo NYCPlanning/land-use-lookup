@@ -153,5 +153,37 @@ def test_get_district_uses_by_naics_index():
         ],
     )
 
-    print(actual.columns)
     pd.testing.assert_frame_equal(actual, expected)
+
+
+def test_get_district_uses_by_naics_index_not_addressed():
+    district_uses = pd.DataFrame(
+        columns=[
+            "Use NAICS Code",
+            "NAICS index names to include",
+            "NAICS to subtract",
+            "Zoning District",
+            "Not permitted",
+            "Is Allowed",
+        ],
+        data=[
+            ["123", "The only ZR use", "12312, 123141", "A1", False, "Yes"],
+        ],
+    )
+    naics_codes = pd.DataFrame(
+        columns=[
+            "NAICS Code",
+            "NAICS Title",
+            "Five-digit Group Code",
+            "Four-digit Group Code",
+            "Three-digit Group Code",
+        ],
+        data=[
+            ["345111", "Not in the ZR", "34511", "3451", "345"],
+        ],
+    )
+    naics_title = "Not in the ZR"
+
+    actual = get_district_uses_by_naics_index(district_uses, naics_codes, naics_title)
+
+    assert actual.empty
