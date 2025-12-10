@@ -79,13 +79,13 @@ def _():
 
 
 @app.cell
-def _(naics_codes, uses_by_zoning_district):
+def _(naics_codes, uses_by_zoning_district_display):
     mo.accordion(
         {
             "## View all uses and indexes": mo.vstack(
                 [
                     mo.md("### Zoning Resolution Uses"),
-                    uses_by_zoning_district,
+                    uses_by_zoning_district_display,
                     mo.md("---"),
                     mo.md("### NAICS Indexes"),
                     naics_codes,
@@ -164,9 +164,13 @@ def _():
 
 @app.cell
 def _(pd):
-    def format_ui_table(data: pd.DataFrame):
+    def format_ui_table(data: pd.DataFrame, could_be_empty: bool = False):
+        if could_be_empty and data.empty:
+            # this is only the case when a NAICS Index is not addressed in the ZR
+            return "The chosen NAICS Index is not explicitely addressed in the Zoning Resolution. Try an alternative/broader term OR search by a Zoning Resolution use"
+
         if data.empty:
-            return "No results, try again."
+            raise ValueError("Data for a UI table is empty but shouldn't be.")
 
         if "Use Group" in data.columns:
             data = data.sort_values(
@@ -232,7 +236,8 @@ def _(
                     selected_use_name,
                     minimal_columns=True,
                     include_all_districts=True,
-                )
+                ),
+                could_be_empty=True,
             )
         )
         if selected_use_name
@@ -317,8 +322,35 @@ def _(SOURCE_DATA_DIRECTORY, pl):
 
 @app.cell
 def _(uses_by_zoning_district):
-    uses_by_zoning_district_minimal = uses_by_zoning_district.copy()
+    uses_by_zoning_district_display = uses_by_zoning_district.copy()
+    uses_by_zoning_district_display = uses_by_zoning_district_display[
+        [
+            "Use Group",
+            "Use Header",
+            "Use Name",
+            "Zoning District",
+            "Is Allowed",
+            "Special Permit",
+            "Size Restrictions",
+            "Additional Conditions",
+            "Open Use Allowances",
+            "Permitted Value",
+            "Use NAICS Code",
+            "NAICS index names to include",
+            "NAICS to subtract",
+            "NAICS index names to subtract",
+            "Processed NAICS",
+            "NAICS Notes",
+            "Is Allowed flag",
+            "Not permitted",
+            "Permitted",
+            "Permitted with limitations",
+            "Permitted with limitations*",
+            "Limitations",
+        ]
+    ]
 
+    uses_by_zoning_district_minimal = uses_by_zoning_district.copy()
     uses_by_zoning_district_minimal = uses_by_zoning_district_minimal[
         [
             "Use Group",
@@ -337,7 +369,7 @@ def _(uses_by_zoning_district):
             "Open Use Allowances",
         ]
     ]
-    return (uses_by_zoning_district_minimal,)
+    return uses_by_zoning_district_display, uses_by_zoning_district_minimal
 
 
 @app.cell
@@ -835,7 +867,9 @@ def _(
         district_uses = uses_by_zoning_district[
             uses_by_zoning_district["Zoning District"] == zoning_distrct
         ]
-        permitted_indexes = find_permitted_naics_indexes(district_uses, naics_codes)
+        permitted_indexes = find_permitted_naics_indexes(
+            district_uses, naics_codes
+        )
         if permitted_indexes is None:
             return None
 
@@ -878,7 +912,9 @@ def _(
             zr_uses_by_district.loc[:, "NAICS Title"] = ""
             zr_uses_by_district.loc[:, "NAICS Code"] = ""
             zr_uses_by_district.loc[:, "Permitted reason"] = "ZR use name"
-            zr_uses_by_district.loc[:, "Permitted value"] = zr_uses_by_district["Use Name"]
+            zr_uses_by_district.loc[:, "Permitted value"] = zr_uses_by_district[
+                "Use Name"
+            ]
             first_columns = [
                 "Zoning District",
                 "Use Group",
@@ -892,9 +928,9 @@ def _(
                 zr_uses_by_district, first_columns, minimal_columns
             )
 
-        results = pd.concat([zr_uses_by_district, naics_indexes_by_district]).reset_index(
-            drop=True
-        )
+        results = pd.concat(
+            [zr_uses_by_district, naics_indexes_by_district]
+        ).reset_index(drop=True)
         return results
 
 
@@ -953,10 +989,18 @@ def _(
                 uses_by_zoning_district["Use Name"] == results["Use Name"].iloc[0]
             ]
             all_use_districts = all_use_districts[
-                ["Use Group", "Use Header", "Use Name", "Zoning District", "Is Allowed"]
+                [
+                    "Use Group",
+                    "Use Header",
+                    "Use Name",
+                    "Zoning District",
+                    "Is Allowed",
+                ]
             ]
             all_use_districts["NAICS Title"] = naics_title
-            all_use_districts["NAICS Code"] = naics_codes_single["NAICS Code"].iloc[0]
+            all_use_districts["NAICS Code"] = naics_codes_single[
+                "NAICS Code"
+            ].iloc[0]
             results = all_use_districts.merge(
                 results,
                 how="left",
