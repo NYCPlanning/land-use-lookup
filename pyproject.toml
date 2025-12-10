@@ -1,2 +1,3 @@
 [tool.marimo.display]
-theme = "dark"
+theme = "light"
+default_width = "full"

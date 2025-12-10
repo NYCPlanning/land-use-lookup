@@ -18,7 +18,7 @@ def _():
 @app.cell
 def _():
     mo.image(
-        src="public/img/dcp-logo-white.svg",
+        src="public/img/dcp-logo.svg",
         alt="Notebook Header",
         width=200,
         style={
