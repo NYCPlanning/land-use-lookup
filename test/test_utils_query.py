@@ -90,7 +90,7 @@ def test_get_all_uses_by_district():
     )
     print(actual["Permitted reason"])
     assert actual["Is Allowed"].to_list() == ["Yes of course", "Yes kinda"]
-    assert actual["NAICS Code"].to_list() == [np.nan, "123111"]
+    assert actual["NAICS Code"].to_list() == ["", "123111"]
 
 
 def test_get_naics_indexes_by_district_mock_m2(
@@ -284,6 +284,7 @@ def test_get_district_uses_by_naics_index_all_districts():
     district_uses = pd.DataFrame(
         columns=[
             "Use Group",
+            "Use Header",
             "Use Name",
             "Use NAICS Code",
             "NAICS index names to include",
@@ -296,6 +297,7 @@ def test_get_district_uses_by_naics_index_all_districts():
         data=[
             [
                 "A group",
+                "A header",
                 "A use",
                 "123",
                 "Shouldn't matter",
@@ -307,6 +309,7 @@ def test_get_district_uses_by_naics_index_all_districts():
             ],
             [
                 "A group",
+                "A header",
                 "A use",
                 "123",
                 "Shouldn't matter",

@@ -125,6 +125,7 @@ def get_naics_indexes_by_district(
     first_columns = [
         "Zoning District",
         "Use Group",
+        "Use Header",
         "Use Name",
         "Is Allowed",
         "NAICS Title",
@@ -151,13 +152,18 @@ def get_all_uses_by_district(
         & ~uses_by_zoning_district["Not permitted"]
     ].copy()
     if not zr_uses_by_district.empty:
+        zr_uses_by_district.loc[:, "NAICS Title"] = ""
+        zr_uses_by_district.loc[:, "NAICS Code"] = ""
         zr_uses_by_district.loc[:, "Permitted reason"] = "ZR use name"
         zr_uses_by_district.loc[:, "Permitted value"] = zr_uses_by_district["Use Name"]
         first_columns = [
             "Zoning District",
             "Use Group",
+            "Use Header",
             "Use Name",
             "Is Allowed",
+            "NAICS Title",
+            "NAICS Code",
         ]
         zr_uses_by_district = _prepare_results_columns(
             zr_uses_by_district, first_columns, minimal_columns
@@ -224,7 +230,7 @@ def get_district_uses_by_naics_index(
             uses_by_zoning_district["Use Name"] == results["Use Name"].iloc[0]
         ]
         all_use_districts = all_use_districts[
-            ["Use Group", "Use Name", "Zoning District", "Is Allowed"]
+            ["Use Group", "Use Header", "Use Name", "Zoning District", "Is Allowed"]
         ]
         all_use_districts["NAICS Title"] = naics_title
         all_use_districts["NAICS Code"] = naics_codes_single["NAICS Code"].iloc[0]
@@ -235,6 +241,7 @@ def get_district_uses_by_naics_index(
                 "NAICS Title",
                 "NAICS Code",
                 "Use Group",
+                "Use Header",
                 "Use Name",
                 "Zoning District",
                 "Is Allowed",
@@ -245,6 +252,7 @@ def get_district_uses_by_naics_index(
         "NAICS Title",
         "NAICS Code",
         "Use Group",
+        "Use Header",
         "Use Name",
         "Zoning District",
         "Is Allowed",
