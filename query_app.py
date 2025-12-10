@@ -167,10 +167,12 @@ def _(pd):
     def format_ui_table(data: pd.DataFrame):
         if data.empty:
             return "No results, try again."
+
         if "Use Group" in data.columns:
             data = data.sort_values(
                 by=["Use Group", "Use Name", "NAICS Title"]
             ).reset_index(drop=True)
+
         return mo.ui.table(
             data,
             page_size=25,
@@ -939,8 +941,10 @@ def _(
             districts_results.append(district_result)
 
         results = pd.concat(districts_results, ignore_index=True)
-        if not results.empty:
-            assert len(results["Use Name"].unique().tolist()) == 1
+        if results.empty:
+            return pd.DataFrame()
+
+        assert len(results["Use Name"].unique().tolist()) == 1
         if include_all_districts:
             all_use_districts = uses_by_zoning_district[
                 uses_by_zoning_district["Use Name"] == results["Use Name"].iloc[0]

@@ -215,8 +215,10 @@ def get_district_uses_by_naics_index(
         districts_results.append(district_result)
 
     results = pd.concat(districts_results, ignore_index=True)
-    if not results.empty:
-        assert len(results["Use Name"].unique().tolist()) == 1
+    if results.empty:
+        return pd.DataFrame()
+
+    assert len(results["Use Name"].unique().tolist()) == 1
     if include_all_districts:
         all_use_districts = uses_by_zoning_district[
             uses_by_zoning_district["Use Name"] == results["Use Name"].iloc[0]
