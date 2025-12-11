@@ -143,13 +143,6 @@ def _(dropdown_districts, dropdown_naics_uses, dropdown_zr_uses, tab_use_type):
         if tab_use_type.value == "Zoning Resolution"
         else dropdown_naics_uses.value
     )
-
-    # fake_list = ["code1/NAICS Name 1", "code1/NAICS Name 2"]
-    # fake_list_text = ", ".join(fake_list)
-    # fake_name = "An NYC thing"
-    # zr_to_naics_use_text = f"Use name '{selected_use_name}' is associated with {len(fake_list)} NAICS Index codes in the Zoning Resolution: {fake_list_text}"
-
-    # naics_to_zr_use_text = f"NAICS Index name '{selected_use_name}' is associated with the Zoning Resolution use name '{fake_name}'"
     return selected_district, selected_use_name
 
 
@@ -172,22 +165,58 @@ def _(pd):
         if data.empty:
             raise ValueError("Data for a UI table is empty but shouldn't be.")
 
-        if "Use Group" in data.columns:
-            data = data.sort_values(
-                by=["Use Group", "Use Name", "NAICS Title"]
-            ).reset_index(drop=True)
-
         return mo.ui.table(
             data,
             page_size=25,
             selection=None,
             show_data_types=False,
         )
-    return (format_ui_table,)
+
+
+    def format_by_district_table(data: pd.DataFrame):
+        # Define a mapping for renaming a subset of columns
+        rename_mapping = {
+            "Use Header": "Subcategory",
+            "Use Name": "Zoning Resolution Use Name",
+            "NAICS Title": "NAICS Index Use Name",
+            "Is Allowed": "Is it Allowed? ",
+        }
+        # Define the desired order of columns
+        new_column_order = [
+            "Zoning District",
+            "Use Group",
+            "Subcategory",
+            "Zoning Resolution Use Name",
+            "NAICS Index Use Name",
+            "Is it Allowed? ",
+            "Special Permit",
+            "Size Restrictions",
+            "Additional Conditions",
+            "Open Use Allowances",
+            "NAICS Code",
+            "Permitted reason",
+            "Permitted value",
+        ]
+
+        data_renamed = data.rename(columns=rename_mapping)
+        data_reordered = (
+            data_renamed[new_column_order]
+            .sort_values(
+                by=[
+                    "Use Group",
+                    "Zoning Resolution Use Name",
+                    "NAICS Index Use Name",
+                ]
+            )
+            .reset_index(drop=True)
+        )
+        return format_ui_table(data_reordered)
+    return format_by_district_table, format_ui_table
 
 
 @app.cell
 def _(
+    format_by_district_table,
     format_ui_table,
     get_all_uses_by_district,
     get_district_uses_by_naics_index,
@@ -200,7 +229,7 @@ def _(
 ):
     # by district
     by_district_result = (
-        format_ui_table(
+        format_by_district_table(
             get_all_uses_by_district(
                 uses_by_zoning_district_minimal,
                 selected_district,
