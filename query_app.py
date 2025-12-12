@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.18.3"
+__generated_with = "0.18.4"
 app = marimo.App(width="medium", css_file="public/custom.css")
 
 with app.setup:
@@ -52,14 +52,12 @@ def _():
     mo.md(r"""
     ## This tool helps identify permitted uses for parcels of land in New York City.
 
-    It is based on the NYC Department of City Planning's [Zoning Resolution](https://zoningresolution.planning.nyc.gov/) and the Census Bureau's [North American Industry Classification System](https://www.census.gov/naics/?99967) (NAICS).
-
-    It can can be used to either:
+    It is based on the NYC Department of City Planning's [Zoning Resolution](https://zoningresolution.planning.nyc.gov/) and the Census Bureau's [North American Industry Classification System](https://www.census.gov/naics/?99967) (NAICS). It can can be used to either:
 
     1. **Query by zoning district** to find which uses are allowed in a certain zoning district
-    2. **Query by use name or NAICS Index** to find which zoning districts allow a certain use
+    2. **Query by Zoning Resolution use name or NAICS Index name** to find which zoning districts allow a certain use
 
-    To find the zoning distring for a tax lot, visit [ZoLa](https://zola.planning.nyc.gov/), New York City's Zoning & Land Use Map.
+    To find the zoning district for a lot or area, visit [ZoLa](https://zola.planning.nyc.gov/), New York City's Zoning & Land Use Map.
     """)
     return
 
@@ -67,14 +65,6 @@ def _():
 @app.cell
 def _(user_accordion):
     user_accordion
-    return
-
-
-@app.cell
-def _():
-    mo.md(r"""
-    ---
-    """)
     return
 
 
@@ -106,18 +96,18 @@ def _():
 def _(naics_codes, uses_by_zoning_district_minimal):
     dropdown_districts = mo.ui.dropdown(
         uses_by_zoning_district_minimal["Zoning District"],
-        label="Zoning district: ",
+        label="Zoning District: ",
         searchable=True,
     )
 
     dropdown_zr_uses = mo.ui.dropdown(
         uses_by_zoning_district_minimal["Use Name"],
-        label="Use name: ",
+        label="Use Name: ",
         searchable=True,
     )
     dropdown_naics_uses = mo.ui.dropdown(
         naics_codes["NAICS Title"],
-        label="Use name: ",
+        label="Use Name: ",
         searchable=True,
     )
     tab_use_type = mo.ui.tabs(
@@ -148,9 +138,11 @@ def _(dropdown_districts, dropdown_naics_uses, dropdown_zr_uses, tab_use_type):
 
 @app.cell
 def _():
-    query_by_district_intro = mo.md("**Start by selecting a zoning district**")
+    query_by_district_intro = mo.md(
+        "**Select a Zoning District to see a full list of allowed uses.**"
+    )
     query_by_use_intro = mo.md(
-        "**Start by selecting the type and value of use to query**"
+        "**Select a Zoning Resolution use name or NAICS Index use name to see where it's allowed.**"
     )
     return query_by_district_intro, query_by_use_intro
 
@@ -174,21 +166,19 @@ def _(pd):
 
 
     def format_by_district_table(data: pd.DataFrame):
-        # Define a mapping for renaming a subset of columns
-        rename_mapping = {
+        column_name_mapping = {
             "Use Header": "Subcategory",
             "Use Name": "Zoning Resolution Use Name",
             "NAICS Title": "NAICS Index Use Name",
-            "Is Allowed": "Is it Allowed? ",
+            "Is Allowed": "Is it Allowed?",
         }
-        # Define the desired order of columns
         new_column_order = [
             "Zoning District",
             "Use Group",
             "Subcategory",
             "Zoning Resolution Use Name",
             "NAICS Index Use Name",
-            "Is it Allowed? ",
+            "Is it Allowed?",
             "Special Permit",
             "Size Restrictions",
             "Additional Conditions",
@@ -197,8 +187,7 @@ def _(pd):
             "Permitted reason",
             "Permitted value",
         ]
-
-        data_renamed = data.rename(columns=rename_mapping)
+        data_renamed = data.rename(columns=column_name_mapping)
         data_reordered = (
             data_renamed[new_column_order]
             .sort_values(
@@ -211,13 +200,38 @@ def _(pd):
             .reset_index(drop=True)
         )
         return format_ui_table(data_reordered)
-    return format_by_district_table, format_ui_table
+
+
+    def format_by_zr_use_table(data: pd.DataFrame):
+        column_name_mapping = {
+            "Use Header": "Subcategory",
+            "Use Name": "Zoning Resolution Use Name",
+            "Is Allowed": "Is it Allowed?",
+        }
+        data_renamed = data.rename(columns=column_name_mapping)
+        return format_ui_table(data_renamed, could_be_empty=True)
+
+
+    def format_by_naics_use_table(data: pd.DataFrame):
+        column_name_mapping = {
+            "Use Header": "Subcategory",
+            "Use Name": "Zoning Resolution Use Name",
+            "Is Allowed": "Is it Allowed?",
+        }
+        data_renamed = data.rename(columns=column_name_mapping)
+        return format_ui_table(data_renamed)
+    return (
+        format_by_district_table,
+        format_by_naics_use_table,
+        format_by_zr_use_table,
+    )
 
 
 @app.cell
 def _(
     format_by_district_table,
-    format_ui_table,
+    format_by_naics_use_table,
+    format_by_zr_use_table,
     get_all_uses_by_district,
     get_district_uses_by_naics_index,
     get_district_uses_by_zr_use,
@@ -250,7 +264,7 @@ def _(
     # by use name
     by_use_name_result = (
         (
-            format_ui_table(
+            format_by_naics_use_table(
                 get_district_uses_by_zr_use(
                     uses_by_zoning_district_minimal,
                     selected_use_name,
@@ -258,7 +272,7 @@ def _(
                 )
             )
             if tab_use_type.value == "Zoning Resolution"
-            else format_ui_table(
+            else format_by_zr_use_table(
                 get_district_uses_by_naics_index(
                     uses_by_zoning_district_minimal,
                     naics_codes,
@@ -266,7 +280,6 @@ def _(
                     minimal_columns=True,
                     include_all_districts=True,
                 ),
-                could_be_empty=True,
             )
         )
         if selected_use_name
@@ -856,6 +869,8 @@ def _(
             uses_by_zoning_district["Use Name"] == use_name
         ].reset_index(drop=True)
         first_columns = [
+            "Use Group",
+            "Use Header",
             "Use Name",
             "Zoning District",
             "Is Allowed",
