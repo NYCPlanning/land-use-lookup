@@ -72,6 +72,8 @@ def get_district_uses_by_zr_use(
         uses_by_zoning_district["Use Name"] == use_name
     ].reset_index(drop=True)
     first_columns = [
+        "Use Group",
+        "Use Header",
         "Use Name",
         "Zoning District",
         "Is Allowed",
