@@ -183,6 +183,7 @@ def _(pd):
             "Size Restrictions",
             "Additional Conditions",
             "Open Use Allowances",
+            "Limitations",
             "NAICS Code",
             "Permitted reason",
             "Permitted value",
@@ -376,6 +377,7 @@ def _(uses_by_zoning_district):
             "Size Restrictions",
             "Additional Conditions",
             "Open Use Allowances",
+            "Limitations",
             "Permitted Value",
             "Use NAICS Code",
             "NAICS index names to include",
@@ -388,7 +390,6 @@ def _(uses_by_zoning_district):
             "Permitted",
             "Permitted with limitations",
             "Permitted with limitations*",
-            "Limitations",
         ]
     ]
 
@@ -409,6 +410,7 @@ def _(uses_by_zoning_district):
             "Size Restrictions",
             "Additional Conditions",
             "Open Use Allowances",
+            "Limitations",
         ]
     ]
     return uses_by_zoning_district_display, uses_by_zoning_district_minimal
@@ -809,6 +811,7 @@ def _(
         "Size Restrictions",
         "Additional Conditions",
         "Open Use Allowances",
+        "Limitations",
     ]
 
 

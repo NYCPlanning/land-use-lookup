@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.17.6"
+__generated_with = "0.18.4"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -477,13 +477,13 @@ def _(
                         )
                 if row["Permitted with limitations*"] == True:
                     try:
-                        df_output.loc[index, "Limitations"] = (
+                        df_output.loc[index, "Limitations*"] = (
                             residential_dist_reg_links[
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - limited appl"
                             ]
                         )
                     except KeyError:
-                        df_output.loc[index, "Limitations"] = (
+                        df_output.loc[index, "Limitations*"] = (
                             residential_dist_reg_links[
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
                             ]
@@ -557,13 +557,13 @@ def _(
                         )
                 if row["Permitted with limitations*"] == True:
                     try:
-                        df_output.loc[index, "Limitations"] = (
+                        df_output.loc[index, "Limitations*"] = (
                             commercial_dist_reg_links[
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - limited appl"
                             ]
                         )
                     except KeyError:
-                        df_output.loc[index, "Limitations"] = (
+                        df_output.loc[index, "Limitations*"] = (
                             commercial_dist_reg_links[
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
                             ]
@@ -637,13 +637,13 @@ def _(
                         )
                 if row["Permitted with limitations*"] == True:
                     try:
-                        df_output.loc[index, "Limitations"] = (
+                        df_output.loc[index, "Limitations*"] = (
                             manufacturing_dist_reg_links[
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - limited appl"
                             ]
                         )
                     except KeyError:
-                        df_output.loc[index, "Limitations"] = (
+                        df_output.loc[index, "Limitations*"] = (
                             manufacturing_dist_reg_links[
                                 f"UG{re.findall(numerals, row['Use Group'])[0]} - ALL"
                             ]
@@ -707,19 +707,23 @@ def _(
 
 @app.cell
 def _(add_zr_links, use_groups_naics_codes):
-    use_groups_zr_links = add_zr_links(use_groups_naics_codes)
-    use_groups_zr_links
-    return (use_groups_zr_links,)
+    use_groups_add_zr_links = add_zr_links(use_groups_naics_codes)
+    use_groups_add_zr_links
+    return (use_groups_add_zr_links,)
 
 
 @app.cell
-def _(use_groups_zr_links):
-    use_groups_zr_links["Limitations"] = (
-        use_groups_zr_links["Permitted with limitations"]
-        + use_groups_zr_links["Permitted with limitations*"]
-    )
+def _(use_groups_add_zr_links):
+    use_groups_zr_links = use_groups_add_zr_links.copy()
+    use_groups_zr_links["Permitted with limitations"] = use_groups_zr_links[
+        "Permitted with limitations"
+    ].fillna("") + use_groups_zr_links["Permitted with limitations*"].fillna("")
+    use_groups_zr_links["Limitations"] = use_groups_zr_links["Limitations"].fillna(
+        ""
+    ) + use_groups_zr_links["Limitations*"].fillna("")
+    use_groups_zr_links.drop(columns=["Limitations*"], inplace=True)
     use_groups_zr_links
-    return
+    return (use_groups_zr_links,)
 
 
 @app.cell(hide_code=True)
@@ -784,6 +788,10 @@ def _(use_groups_output):
 def _(use_groups_output):
     use_groups_output.to_csv(
         OUTPUT_DIRECTORY / "for_query_tool" / "uses_by_zoning_district.csv",
+        index=False,
+    )
+    use_groups_output.to_csv(
+        mo.notebook_location() / "public" / "data" / "uses_by_zoning_district.csv",
         index=False,
     )
     return
@@ -1017,6 +1025,9 @@ def _():
 def _(naics_codes_output):
     naics_codes_output.to_csv(
         OUTPUT_DIRECTORY / "for_query_tool" / "naics_codes.csv", index=False
+    )
+    naics_codes_output.to_csv(
+        mo.notebook_location() / "public" / "data" / "naics_codes.csv", index=False
     )
     return
 
