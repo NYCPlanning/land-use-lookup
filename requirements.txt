@@ -10,8 +10,6 @@ anyio==4.12.0
     #   httpx
     #   openai
     #   starlette
-appnope==0.1.4
-    # via ipykernel
 asttokens==3.0.1
     # via stack-data
 attrs==25.4.0
@@ -64,7 +62,7 @@ executing==2.2.1
     # via stack-data
 fastjsonschema==2.21.2
     # via nbformat
-google-auth==2.43.0
+google-auth[requests]==2.43.0
     # via google-genai
 google-genai==1.55.0
     # via marimo
@@ -119,11 +117,9 @@ jupyter-core==5.9.1
     #   nbformat
 librt==0.7.3
     # via mypy
-loro==1.10.3
-    # via marimo
 lsprotocol==2025.0.0
     # via python-lsp-ruff
-marimo==0.18.4
+marimo[lsp,recommended]==0.18.4
     # via -r requirements.in
 markdown==3.10
     # via
@@ -186,7 +182,7 @@ pluggy==1.6.0
     # via
     #   pytest
     #   python-lsp-server
-polars==1.36.1
+polars[pyarrow]==1.36.1
     # via marimo
 polars-runtime-32==1.36.1
     # via polars
@@ -204,7 +200,7 @@ pyarrow==22.0.0
     # via
     #   -r requirements.in
     #   polars
-pyasn1==0.6.1
+pyasn1==0.6.2
     # via
     #   pyasn1-modules
     #   rsa
@@ -274,7 +270,7 @@ sniffio==1.3.1
     # via
     #   google-genai
     #   openai
-sqlglot==28.3.0
+sqlglot[rs]==28.3.0
     # via marimo
 sqlglotrs==0.9.0
     # via sqlglot
