@@ -4,9 +4,8 @@ altair==6.0.0
     # via marimo
 annotated-types==0.7.0
     # via pydantic
-anyio==4.12.0
+anyio==4.12.1
     # via
-    #   google-genai
     #   httpx
     #   openai
     #   starlette
@@ -20,17 +19,15 @@ attrs==25.4.0
     #   jsonschema
     #   lsprotocol
     #   referencing
-black==25.12.0
+black==26.1.0
     # via
     #   -r requirements.in
     #   python-lsp-server
-cachetools==6.2.2
-    # via google-auth
 cattrs==25.3.0
     # via
     #   lsprotocol
     #   python-lsp-ruff
-certifi==2025.11.12
+certifi==2026.1.4
     # via
     #   httpcore
     #   httpx
@@ -42,19 +39,19 @@ click==8.3.1
     #   black
     #   marimo
     #   uvicorn
+colorama==0.4.6
+    # via griffe
 comm==0.2.3
     # via ipykernel
-debugpy==1.8.18
+debugpy==1.8.19
     # via ipykernel
 decorator==5.2.1
     # via ipython
 distro==1.9.0
-    # via
-    #   google-genai
-    #   openai
+    # via openai
 docstring-to-markdown==0.17
     # via python-lsp-server
-docutils==0.22.3
+docutils==0.22.4
     # via marimo
 duckdb==1.4.3
     # via marimo
@@ -64,10 +61,10 @@ executing==2.2.1
     # via stack-data
 fastjsonschema==2.21.2
     # via nbformat
-google-auth==2.43.0
-    # via google-genai
-google-genai==1.55.0
-    # via marimo
+genai-prices==0.0.51
+    # via pydantic-ai-slim
+griffe==1.15.0
+    # via pydantic-ai-slim
 h11==0.16.0
     # via
     #   httpcore
@@ -76,20 +73,24 @@ httpcore==1.0.9
     # via httpx
 httpx==0.28.1
     # via
-    #   google-genai
+    #   genai-prices
     #   openai
+    #   pydantic-ai-slim
+    #   pydantic-graph
 idna==3.11
     # via
     #   anyio
     #   httpx
     #   requests
-importlib-metadata==8.7.0
-    # via docstring-to-markdown
+importlib-metadata==8.7.1
+    # via
+    #   docstring-to-markdown
+    #   opentelemetry-api
 iniconfig==2.3.0
     # via pytest
 ipykernel==7.1.0
     # via -r requirements.in
-ipython==9.8.0
+ipython==9.9.0
     # via ipykernel
 ipython-pygments-lexers==1.1.1
     # via ipython
@@ -104,26 +105,28 @@ jinja2==3.1.6
     # via altair
 jiter==0.12.0
     # via openai
-jsonschema==4.25.1
+jsonschema==4.26.0
     # via
     #   altair
     #   nbformat
 jsonschema-specifications==2025.9.1
     # via jsonschema
-jupyter-client==8.7.0
+jupyter-client==8.8.0
     # via ipykernel
 jupyter-core==5.9.1
     # via
     #   ipykernel
     #   jupyter-client
     #   nbformat
-librt==0.7.3
+librt==0.7.8
     # via mypy
+logfire-api==4.19.0
+    # via pydantic-graph
 loro==1.10.3
     # via marimo
 lsprotocol==2025.0.0
     # via python-lsp-ruff
-marimo==0.18.4
+marimo==0.19.4
     # via -r requirements.in
 markdown==3.10
     # via
@@ -137,13 +140,13 @@ matplotlib-inline==0.2.1
     #   ipython
 msgspec==0.20.0
     # via marimo
-mypy==1.19.0
+mypy==1.19.1
     # via -r requirements.in
 mypy-extensions==1.1.0
     # via
     #   black
     #   mypy
-narwhals==2.13.0
+narwhals==2.15.0
     # via
     #   altair
     #   marimo
@@ -151,14 +154,16 @@ nbformat==5.10.4
     # via marimo
 nest-asyncio==1.6.0
     # via ipykernel
-numpy==2.3.5
+numpy==2.4.1
     # via
     #   pandas
     #   pandas-stubs
-openai==2.11.0
-    # via marimo
+openai==2.15.0
+    # via pydantic-ai-slim
 openpyxl==3.1.5
     # via -r requirements.in
+opentelemetry-api==1.39.1
+    # via pydantic-ai-slim
 packaging==25.0
     # via
     #   altair
@@ -168,11 +173,11 @@ packaging==25.0
     #   pytest
 pandas==2.3.3
     # via -r requirements.in
-pandas-stubs==2.3.3.251201
+pandas-stubs==2.3.3.260113
     # via -r requirements.in
 parso==0.8.5
     # via jedi
-pathspec==0.12.1
+pathspec==1.0.3
     # via
     #   black
     #   mypy
@@ -186,13 +191,13 @@ pluggy==1.6.0
     # via
     #   pytest
     #   python-lsp-server
-polars==1.36.1
+polars==1.37.1
     # via marimo
-polars-runtime-32==1.36.1
+polars-runtime-32==1.37.1
     # via polars
 prompt-toolkit==3.0.52
     # via ipython
-psutil==7.1.3
+psutil==7.2.1
     # via
     #   ipykernel
     #   marimo
@@ -204,25 +209,25 @@ pyarrow==22.0.0
     # via
     #   -r requirements.in
     #   polars
-pyasn1==0.6.1
-    # via
-    #   pyasn1-modules
-    #   rsa
-pyasn1-modules==0.4.2
-    # via google-auth
 pydantic==2.12.5
     # via
-    #   google-genai
+    #   genai-prices
     #   openai
+    #   pydantic-ai-slim
+    #   pydantic-graph
+pydantic-ai-slim==1.44.0
+    # via marimo
 pydantic-core==2.41.5
     # via pydantic
+pydantic-graph==1.44.0
+    # via pydantic-ai-slim
 pygments==2.19.2
     # via
     #   ipython
     #   ipython-pygments-lexers
     #   marimo
     #   pytest
-pymdown-extensions==10.19
+pymdown-extensions==10.20
     # via marimo
 pytest==9.0.2
     # via -r requirements.in
@@ -250,43 +255,40 @@ pyzmq==27.1.0
     # via
     #   ipykernel
     #   jupyter-client
+    #   marimo
 referencing==0.37.0
     # via
     #   jsonschema
     #   jsonschema-specifications
+regex==2026.1.15
+    # via tiktoken
 requests==2.32.5
-    # via
-    #   google-auth
-    #   google-genai
+    # via tiktoken
 rpds-py==0.30.0
     # via
     #   jsonschema
     #   referencing
-rsa==4.9.1
-    # via google-auth
-ruff==0.14.9
+ruff==0.14.13
     # via
     #   marimo
     #   python-lsp-ruff
 six==1.17.0
     # via python-dateutil
 sniffio==1.3.1
-    # via
-    #   google-genai
-    #   openai
-sqlglot==28.3.0
+    # via openai
+sqlglot==28.6.0
     # via marimo
-sqlglotrs==0.9.0
+sqlglotrs==0.11.0
     # via sqlglot
 stack-data==0.6.3
     # via ipython
-starlette==0.50.0
+starlette==0.52.1
     # via marimo
-tenacity==9.1.2
-    # via google-genai
-tomlkit==0.13.3
+tiktoken==0.12.0
+    # via pydantic-ai-slim
+tomlkit==0.14.0
     # via marimo
-tornado==6.5.3
+tornado==6.5.4
     # via
     #   ipykernel
     #   jupyter-client
@@ -307,29 +309,32 @@ typing-extensions==4.15.0
     #   altair
     #   cattrs
     #   docstring-to-markdown
-    #   google-genai
     #   mypy
     #   openai
+    #   opentelemetry-api
     #   pydantic
     #   pydantic-core
     #   typing-inspection
 typing-inspection==0.4.2
-    # via pydantic
-tzdata==2025.2
+    # via
+    #   pydantic
+    #   pydantic-ai-slim
+    #   pydantic-graph
+tzdata==2025.3
     # via pandas
 ujson==5.11.0
     # via
     #   python-lsp-jsonrpc
     #   python-lsp-server
-urllib3==2.6.2
+urllib3==2.6.3
     # via requests
-uvicorn==0.38.0
+uv==0.9.26
+    # via marimo
+uvicorn==0.40.0
     # via marimo
 wcwidth==0.2.14
     # via prompt-toolkit
-websockets==15.0.1
-    # via
-    #   google-genai
-    #   marimo
+websockets==16.0
+    # via marimo
 zipp==3.23.0
     # via importlib-metadata

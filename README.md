@@ -35,7 +35,7 @@ A github action converts the notebook to WASM HTML and deploys the page. The act
 ### Setup
 
 > [!IMPORTANT]
-> `uv` is the preferred python environment and package manager ([install docs](https://github.com/astral-sh/uv/?tab=readme-ov-file#installation)) but everything here is possible with `pip`.
+> `uv` is the preferred python environment and package manager ([install docs](https://github.com/astral-sh/uv/?tab=readme-ov-file#installation)) but everything here is possible with `pip`. See Data Engineering wiki page on [Python management with `uv`](https://github.com/NYCPlanning/data-engineering/wiki/Python-management-with-uv) for more details.
 
 1. Create a virtual environment with `uv venv`
 2. (Optional) Recompile python package requirements with `uv pip compile --upgrade requirements.in -o requirements.txt`
@@ -50,7 +50,7 @@ A github action converts the notebook to WASM HTML and deploys the page. The act
 # Open a notebook
 marimo edit process_data.py
 # Open a notebook in app mode
-marimo app query_app.py
+marimo run query_app.py
 ```
 
 ```bash
