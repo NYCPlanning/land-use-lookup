@@ -48,7 +48,6 @@ def _():
 @app.cell
 def _():
     import pandas as pd
-    import numpy as np
     import polars as pl
     import pyarrow  # to force install in WASM notebook
 
@@ -79,13 +78,13 @@ def _(user_accordion):
 
 
 @app.cell
-def _(naics_codes, uses_by_zoning_district_display):
+def _(naics_codes, zr_uses):
     mo.accordion(
         {
             "## View all uses and indexes": mo.vstack(
                 [
                     mo.md("### Zoning Resolution Uses"),
-                    uses_by_zoning_district_display,
+                    zr_uses,
                     mo.md("---"),
                     mo.md("### NAICS Indexes"),
                     naics_codes,
@@ -374,7 +373,7 @@ def _(SOURCE_DATA_DIRECTORY, pl):
 
 
 @app.cell
-def _(uses_by_zoning_district):
+def _(prepare_results_columns, uses_by_zoning_district):
     uses_by_zoning_district_display = uses_by_zoning_district.copy()
     uses_by_zoning_district_display = uses_by_zoning_district_display[
         [
@@ -402,6 +401,7 @@ def _(uses_by_zoning_district):
             "Permitted with limitations*",
         ]
     ]
+    zr_uses = prepare_results_columns(uses_by_zoning_district_display)
 
     uses_by_zoning_district_minimal = uses_by_zoning_district.copy()
     uses_by_zoning_district_minimal = uses_by_zoning_district_minimal[
@@ -423,7 +423,7 @@ def _(uses_by_zoning_district):
             "Limitations",
         ]
     ]
-    return uses_by_zoning_district_display, uses_by_zoning_district_minimal
+    return uses_by_zoning_district_minimal, zr_uses
 
 
 @app.cell
@@ -836,23 +836,29 @@ def _(
         # replace all falsy values with an empty string
         df = df.copy()
         for col in df.columns:
+            # skip boolean columns to avoid converting False/True to strings
+            if pd.api.types.is_bool_dtype(df[col]):
+                continue
             df[col] = df[col].replace(False, "")
             df[col] = df[col].replace("False", "")
             df[col] = df[col].fillna("")
         return df
 
 
-    def _prepare_results_columns(
-        results: pd.DataFrame, first_columns: list, minimal_columns: bool = False
+    def prepare_results_columns(
+        results: pd.DataFrame,
+        first_columns: list | None = None,
+        minimal_columns: bool = False,
     ) -> pd.DataFrame:
-        primary_columns = first_columns + ZR_URL_COLUMNS
-        reordered = _reorder_columns(results, primary_columns)
-        cleaned_values = _clean_falsy_values(reordered)
+        cleaned_values = _clean_falsy_values(results)
+        if not first_columns:
+            return cleaned_values
 
-        result = cleaned_values
+        primary_columns = first_columns + ZR_URL_COLUMNS
+        reordered = _reorder_columns(cleaned_values, primary_columns)
         if minimal_columns:
-            return result.loc[:, primary_columns]
-        return result
+            return reordered.loc[:, primary_columns]
+        return reordered
 
 
     def get_district_uses_by_zr_use(
@@ -888,7 +894,7 @@ def _(
             "Zoning District",
             "Is Allowed",
         ]
-        return _prepare_results_columns(results, first_columns, minimal_columns)
+        return prepare_results_columns(results, first_columns, minimal_columns)
 
 
     def get_naics_indexes_by_district(
@@ -947,7 +953,7 @@ def _(
             "Permitted reason",
             "Permitted value",
         ]
-        return _prepare_results_columns(results, first_columns, minimal_columns)
+        return prepare_results_columns(results, first_columns, minimal_columns)
 
 
     def get_all_uses_by_district(
@@ -981,7 +987,7 @@ def _(
                 "NAICS Title",
                 "NAICS Code",
             ]
-            zr_uses_by_district = _prepare_results_columns(
+            zr_uses_by_district = prepare_results_columns(
                 zr_uses_by_district, first_columns, minimal_columns
             )
 
@@ -1083,11 +1089,12 @@ def _(
             "Permitted reason",
             "Permitted value",
         ]
-        return _prepare_results_columns(results, first_columns, minimal_columns)
+        return prepare_results_columns(results, first_columns, minimal_columns)
     return (
         get_all_uses_by_district,
         get_district_uses_by_naics_index,
         get_district_uses_by_zr_use,
+        prepare_results_columns,
     )
 
 
