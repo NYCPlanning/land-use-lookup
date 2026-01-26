@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.18.3"
+__generated_with = "0.19.4"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -287,14 +287,31 @@ def _():
 @app.cell
 def _(naics_codes, uses_by_zoning_district):
     naics_title_day_spas = "Day spas"
-    naics_codes[
-        naics_codes["NAICS Title"] == naics_title_day_spas
-    ].reset_index(drop=True)
-
     get_district_uses_by_naics_index(
         uses_by_zoning_district,
         naics_codes,
         naics_title_day_spas,
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _():
+    mo.md(r"""
+    **Lentil Farmimg**
+
+    Lentil farming is not addressed by any uses in the ZR so the result should be an empty table
+    """)
+    return
+
+
+@app.cell
+def _(naics_codes, uses_by_zoning_district):
+    naics_title_lentils = "Lentil farming, dry, field and seed production"
+    get_district_uses_by_naics_index(
+        uses_by_zoning_district,
+        naics_codes,
+        naics_title_lentils,
     )
     return
 
