@@ -7,9 +7,10 @@
 #     "pyarrow==22.0.0",
 # ]
 # ///
+
 import marimo
 
-__generated_with = "0.18.4"
+__generated_with = "0.19.4"
 app = marimo.App(width="medium", css_file="public/custom.css")
 
 with app.setup:
@@ -115,7 +116,7 @@ def _(naics_codes, uses_by_zoning_district_minimal):
         searchable=True,
     )
     dropdown_naics_uses = mo.ui.dropdown(
-        naics_codes["NAICS Title"],
+        sorted(naics_codes["NAICS Title"]),
         label="Use Name: ",
         searchable=True,
     )
