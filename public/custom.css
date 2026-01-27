@@ -2,3 +2,15 @@
   --marimo-heading-font: "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --marimo-text-font: "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
+
+[data-testid="watermark"] {
+  display: none !important;
+}
+
+[data-testid="static-notebook-banner"] {
+  display: none !important;
+}
+
+[role="region"][aria-label*="Notifications"] {
+  display: none !important;
+}
