@@ -181,7 +181,7 @@ def _(pd):
             "NAICS Title": "NAICS Index Use Name",
             "Is Allowed": "Is it Allowed?",
         }
-        new_column_order = [
+        columns = [
             "Zoning District",
             "Use Group",
             "Subcategory",
@@ -194,12 +194,10 @@ def _(pd):
             "Additional Conditions",
             "Open Use Allowances",
             "Limitations",
-            "Permitted reason",
-            "Permitted value",
         ]
         data_renamed = data.rename(columns=column_name_mapping)
         data_reordered = (
-            data_renamed[new_column_order]
+            data_renamed[columns]
             .sort_values(
                 by=[
                     "Use Group",
