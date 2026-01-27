@@ -219,7 +219,7 @@ def _(pd):
             "Is Allowed": "Is it Allowed?",
         }
         data_renamed = data.rename(columns=column_name_mapping)
-        return format_ui_table(data_renamed, could_be_empty=True)
+        return format_ui_table(data_renamed)
 
 
     def format_by_naics_use_table(data: pd.DataFrame):
@@ -229,7 +229,7 @@ def _(pd):
             "Is Allowed": "Is it Allowed?",
         }
         data_renamed = data.rename(columns=column_name_mapping)
-        return format_ui_table(data_renamed)
+        return format_ui_table(data_renamed, could_be_empty=True)
     return (
         format_by_district_table,
         format_by_naics_use_table,
@@ -274,7 +274,7 @@ def _(
     # by use name
     by_use_name_result = (
         (
-            format_by_naics_use_table(
+            format_by_zr_use_table(
                 get_district_uses_by_zr_use(
                     uses_by_zoning_district_minimal,
                     selected_use_name,
@@ -282,7 +282,7 @@ def _(
                 )
             )
             if tab_use_type.value == "Zoning Resolution"
-            else format_by_zr_use_table(
+            else format_by_naics_use_table(
                 get_district_uses_by_naics_index(
                     uses_by_zoning_district_minimal,
                     naics_codes,
