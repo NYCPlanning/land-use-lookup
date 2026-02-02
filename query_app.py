@@ -147,13 +147,30 @@ def _(dropdown_districts, dropdown_naics_uses, dropdown_zr_uses, tab_use_type):
 
 @app.cell
 def _():
-    query_by_district_intro = mo.md(
-        "**Select a Zoning District to see a full list of allowed uses.**"
-    )
-    query_by_use_intro = mo.md(
-        "**Select a Zoning Resolution use name or NAICS Index use name to see where it's allowed.**"
-    )
-    return query_by_district_intro, query_by_use_intro
+    query_by_district_intro=mo.md("""
+    **Select a Zoning District to see a full list of allowed uses.**
+    _Note: if a lot has multiple associated zoning districts (e.g., R6B, C2-4), this is an instance of a Commercial District overlay. Allowances for both districts, R6 and C2 in this example, would be applicable. See the Zoning Resolution for more information at www.nyc.gov/planning._
+    """)
+    return (query_by_district_intro,)
+
+
+@app.cell
+def _():
+    query_by_use_intro=mo.md("""
+    **Select a Zoning Resolution use name or NAICS Index use name to see where it's allowed.**
+    _Note: some commercial uses (e.g., agriculture, offices, health care facilities) do not have affiliated NAICS codes specified in the Zoning Resolution, though may align with unlisted NAICS codes and indices. Users should prioritize “Use Name”, the language of the Zoning Resolution, over associated NAICS index names when considering the applicability of a business._
+    """)
+    return (query_by_use_intro,)
+
+
+@app.cell
+def _():
+    mo.md(r"""
+    **Disclaimer:** _The Use Query Tool provides an overview of the use allowances and zoning rules and regulations of New York City and is not intended to serve as a substitute for the actual regulations which are to be found in the Zoning Resolution of the City of New York, available in print and also online at www.nyc.gov/planning. The City disclaims any liability for errors that may be contained herein and shall not be responsible for any damages, consequential or actual, arising out of or in connection with the use of this information._
+
+    Note that some non-conforming uses exist in the city, where sites pre-date zoning. In addition to zoning and the Department of City Planning, other City policies and agencies govern siting and use allowance. Contact DCP’s Zoning Help Desk at 212-720-3291 with site-specific use allowance inquiries.
+    """)
+    return
 
 
 @app.cell
