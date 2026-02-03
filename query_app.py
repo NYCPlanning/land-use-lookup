@@ -147,19 +147,19 @@ def _(dropdown_districts, dropdown_naics_uses, dropdown_zr_uses, tab_use_type):
 
 @app.cell
 def _():
-    query_by_district_intro=mo.md("""
+    query_by_district_intro = """
     **Select a Zoning District to see a full list of allowed uses.**
     _Note: if a lot has multiple associated zoning districts (e.g., R6B, C2-4), this is an instance of a Commercial District overlay. Allowances for both districts, R6 and C2 in this example, would be applicable. See the Zoning Resolution for more information at www.nyc.gov/planning._
-    """)
+    """
     return (query_by_district_intro,)
 
 
 @app.cell
 def _():
-    query_by_use_intro=mo.md("""
+    query_by_use_intro = """
     **Select a Zoning Resolution use name or NAICS Index use name to see where it's allowed.**
     _Note: some commercial uses (e.g., agriculture, offices, health care facilities) do not have affiliated NAICS codes specified in the Zoning Resolution, though may align with unlisted NAICS codes and indices. Users should prioritize “Use Name”, the language of the Zoning Resolution, over associated NAICS index names when considering the applicability of a business._
-    """)
+    """
     return (query_by_use_intro,)
 
 
@@ -351,7 +351,7 @@ def _(
         {
             "## Query by zoning district": mo.vstack(
                 [
-                    query_by_district_intro,
+                    mo.md(query_by_district_intro),
                     dropdown_districts,
                     mo.md("---"),
                     conditional_result_district,
@@ -359,7 +359,7 @@ def _(
             ),
             "## Query by use": mo.vstack(
                 [
-                    query_by_use_intro,
+                    mo.md(query_by_use_intro),
                     tab_use_type,
                     mo.md("---"),
                     conditional_result_use_name,
