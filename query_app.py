@@ -17,11 +17,9 @@ with app.setup:
     import marimo as mo
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _():
-    mo.md(r"""
-    # THIS IS AN EXPERIMENTAL APPLICATION
-    """)
+    mo.center(mo.md("# THIS APPLICATION IS IN DEVELOPMENT"))
     return
 
 
@@ -147,20 +145,18 @@ def _(dropdown_districts, dropdown_naics_uses, dropdown_zr_uses, tab_use_type):
 
 @app.cell
 def _():
-    query_by_district_intro = """
-    **Select a Zoning District to see a full list of allowed uses.**
-    _Note: if a lot has multiple associated zoning districts (e.g., R6B, C2-4), this is an instance of a Commercial District overlay. Allowances for both districts, R6 and C2 in this example, would be applicable. See the Zoning Resolution for more information at www.nyc.gov/planning._
-    """
-    return (query_by_district_intro,)
+    query_by_district_intro = "**Select a Zoning District to see a full list of allowed uses.**"
+
+    query_by_district_note = "_Note: If a lot has multiple associated zoning districts (e.g., R6B, C2-4), this is an instance of a Commercial District overlay. Allowances for both districts, R6 and C2 in this example, would be applicable. See the Zoning Resolution for more information at www.nyc.gov/planning._"
+    return query_by_district_intro, query_by_district_note
 
 
 @app.cell
 def _():
-    query_by_use_intro = """
-    **Select a Zoning Resolution use name or NAICS Index use name to see where it's allowed.**
-    _Note: some commercial uses (e.g., agriculture, offices, health care facilities) do not have affiliated NAICS codes specified in the Zoning Resolution, though may align with unlisted NAICS codes and indices. Users should prioritize “Use Name”, the language of the Zoning Resolution, over associated NAICS index names when considering the applicability of a business._
-    """
-    return (query_by_use_intro,)
+    query_by_use_intro = "**Select a Zoning Resolution use name or NAICS Index use name to see where it's allowed.**"
+
+    query_by_use_note = "_Note: Some commercial uses (e.g., agriculture, offices, health care facilities) do not have affiliated NAICS codes specified in the Zoning Resolution, though may align with unlisted NAICS codes and indices. Users should prioritize “Use Name”, the language of the Zoning Resolution, over associated NAICS index names when considering the applicability of a business._"
+    return query_by_use_intro, query_by_use_note
 
 
 @app.cell
@@ -168,7 +164,7 @@ def _():
     mo.md(r"""
     **Disclaimer:** _The Use Query Tool provides an overview of the use allowances and zoning rules and regulations of New York City and is not intended to serve as a substitute for the actual regulations which are to be found in the Zoning Resolution of the City of New York, available in print and also online at www.nyc.gov/planning. The City disclaims any liability for errors that may be contained herein and shall not be responsible for any damages, consequential or actual, arising out of or in connection with the use of this information._
 
-    Note that some non-conforming uses exist in the city, where sites pre-date zoning. In addition to zoning and the Department of City Planning, other City policies and agencies govern siting and use allowance. Contact DCP’s Zoning Help Desk at 212-720-3291 with site-specific use allowance inquiries.
+    _Note that some non-conforming uses exist in the city, particularly where sites pre-date zoning. There are other policies that govern siting and use allowances in addition to zoning. Contact DCP’s Zoning Help Desk at 212-720-3291 with site-specific use allowance inquiries._
     """)
     return
 
@@ -178,7 +174,7 @@ def _(pd):
     def format_ui_table(data: pd.DataFrame, could_be_empty: bool = False):
         if could_be_empty and data.empty:
             # this is only the case when a NAICS Index is not addressed in the ZR
-            return "The chosen NAICS Index is not explicitely addressed in the Zoning Resolution. Try an alternative/broader term OR search by a Zoning Resolution use"
+            return "The chosen NAICS Index is not explicitly addressed in the Zoning Resolution. Try an alternative/broader term or search by a Zoning Resolution use."
 
         if data.empty:
             raise ValueError("Data for a UI table is empty but shouldn't be.")
@@ -344,7 +340,9 @@ def _(
     conditional_result_use_name,
     dropdown_districts,
     query_by_district_intro,
+    query_by_district_note,
     query_by_use_intro,
+    query_by_use_note,
     tab_use_type,
 ):
     user_accordion = mo.accordion(
@@ -355,6 +353,8 @@ def _(
                     dropdown_districts,
                     mo.md("---"),
                     conditional_result_district,
+                    mo.md("---"),
+                    mo.md(query_by_district_note)
                 ],
             ),
             "## Query by use": mo.vstack(
@@ -363,6 +363,8 @@ def _(
                     tab_use_type,
                     mo.md("---"),
                     conditional_result_use_name,
+                    mo.md("---"),
+                    mo.md(query_by_use_note)
                 ]
             ),
         }
