@@ -155,7 +155,7 @@ def _():
 def _():
     query_by_use_intro = "**Select a Zoning Resolution use name or NAICS Index use name to see where it's allowed.**"
 
-    query_by_use_note = "_Note: Some commercial uses (e.g., agriculture, offices, health care facilities) do not have affiliated NAICS codes specified in the Zoning Resolution, though may align with unlisted NAICS codes and indices. Users should prioritize “Use Name”, the language of the Zoning Resolution, over associated NAICS index names when considering the applicability of a business._"
+    query_by_use_note = "_Note: Some commercial uses (e.g., agriculture, offices, health care facilities) do not have affiliated NAICS codes specified in the Zoning Resolution, though may align with unlisted NAICS codes and indices. Users should prioritize “Use Name”, the language of the Zoning Resolution, over associated NAICS index names when considering the applicability of a business. Asterisk (*) represents manually added uses not specified in the Zoning Resolution Use Group Charts or affiliated via NAICS code._"
     return query_by_use_intro, query_by_use_note
 
 
