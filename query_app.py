@@ -155,7 +155,7 @@ def _():
 def _():
     query_by_use_intro = "**Select a Zoning Resolution use name or NAICS Index use name to see where it's allowed.**"
 
-    query_by_use_note = "_Note: Any term defined in the [Zoning Resolution Glossary](https://zr.planning.nyc.gov/article-i/chapter-2#12-10) is denoted by surrounding pound symbols (#), e.g., #Schools#. Asterisks (*) represents manually added uses that are not specified in the Zoning Resolution Use Group Charts or captured via NAICS code. Users should prioritize “Use Name”, the language of the Zoning Resolution, over associated NAICS index names when considering the applicability of a business. Some commercial uses (e.g., agriculture, offices, health care facilities) do not have affiliated NAICS codes specified in the Zoning Resolution, though may align with unlisted NAICS codes and indices. ._"
+    query_by_use_note = "_Note: Any term defined in the [Zoning Resolution Glossary](https://zr.planning.nyc.gov/article-i/chapter-2#12-10) is denoted by pound symbols (#). Asterisks (*) represent uses that were added for accessibility and are not specified in the Zoning Resolution Use Group Charts or captured via NAICS code. Users should prioritize “Use Name”, the language of the Zoning Resolution, over associated NAICS index names when considering the applicability of a business. Some commercial uses (e.g., agriculture, offices, health care facilities) do not have affiliated NAICS codes specified in the Zoning Resolution, though may align with unlisted NAICS codes and indices._"
     return query_by_use_intro, query_by_use_note
 
 
