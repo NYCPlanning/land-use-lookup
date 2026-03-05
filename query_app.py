@@ -155,7 +155,7 @@ def _():
 def _():
     query_by_use_intro = "**Select a Zoning Resolution use name or NAICS Index use name to see where it's allowed.**"
 
-    query_by_use_note = "_Note: Any term defined in the [Zoning Resolution Glossary](https://zr.planning.nyc.gov/article-i/chapter-2#12-10) is denoted by pound symbols (#). Asterisks (*) represent uses that were added for accessibility and are not specified in the Zoning Resolution Use Group Charts or captured via NAICS code. Users should prioritize “Use Name”, the language of the Zoning Resolution, over associated NAICS index names when considering the applicability of a business. Some commercial uses (e.g., agriculture, offices, health care facilities) do not have affiliated NAICS codes specified in the Zoning Resolution, though may align with unlisted NAICS codes and indices._"
+    query_by_use_note = "_Note: Users should prioritize “Use Name”, the language of the Zoning Resolution, over associated NAICS index names when considering the applicability of a business. Some commercial uses (e.g., agriculture, offices, health care facilities) do not have affiliated NAICS codes specified in the Zoning Resolution, though may align with unlisted NAICS codes and indices. Any term defined in the [Zoning Resolution Glossary](https://zr.planning.nyc.gov/article-i/chapter-2#12-10) is denoted by pound symbols (#). Asterisks (*) represent uses that were added for accessibility and are not specified in the Zoning Resolution Use Group Charts or captured via NAICS code._"
     return query_by_use_intro, query_by_use_note
 
 
@@ -189,7 +189,7 @@ def _(pd):
 
     def format_by_district_table(data: pd.DataFrame):
         column_name_mapping = {
-            "Use Header": "Subcategory",
+            "Use Header": "Use Category",
             "Use Name": "Zoning Resolution Use Name",
             "NAICS Title": "NAICS Index Use Name",
             "Is Allowed": "Is it Allowed?",
@@ -197,7 +197,7 @@ def _(pd):
         columns = [
             "Zoning District",
             "Use Group",
-            "Subcategory",
+            "Use Category",
             "Zoning Resolution Use Name",
             "NAICS Index Use Name",
             "Is it Allowed?",
@@ -207,6 +207,7 @@ def _(pd):
             "Additional Conditions",
             "Open Use Allowances",
             "Limitations",
+            "Use Notes",
         ]
         data_renamed = data.rename(columns=column_name_mapping)
         data_reordered = (
@@ -225,7 +226,7 @@ def _(pd):
 
     def format_by_zr_use_table(data: pd.DataFrame):
         column_name_mapping = {
-            "Use Header": "Subcategory",
+            "Use Header": "Use Category",
             "Use Name": "Zoning Resolution Use Name",
             "Is Allowed": "Is it Allowed?",
         }
@@ -235,7 +236,7 @@ def _(pd):
 
     def format_by_naics_use_table(data: pd.DataFrame):
         column_name_mapping = {
-            "Use Header": "Subcategory",
+            "Use Header": "Use Category",
             "Use Name": "Zoning Resolution Use Name",
             "Is Allowed": "Is it Allowed?",
         }
@@ -416,6 +417,7 @@ def _(prepare_results_columns, uses_by_zoning_district):
             "Permitted",
             "Permitted with limitations",
             "Permitted with limitations*",
+            "Use Notes",
         ]
     ]
     zr_uses = prepare_results_columns(uses_by_zoning_district_display)
@@ -438,6 +440,7 @@ def _(prepare_results_columns, uses_by_zoning_district):
             "Additional Conditions",
             "Open Use Allowances",
             "Limitations",
+            "Use Notes",
         ]
     ]
     return uses_by_zoning_district_minimal, zr_uses
@@ -839,6 +842,7 @@ def _(
         "Additional Conditions",
         "Open Use Allowances",
         "Limitations",
+        "Use Notes",
     ]
 
 

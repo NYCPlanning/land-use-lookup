@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.18.4"
+__generated_with = "0.19.4"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -763,6 +763,7 @@ def _(use_groups_output):
             "Size Restrictions",
             "Additional Conditions",
             "Open Use Allowances",
+            "Use Notes",
         ]
     ]
     use_groups_output_excel["Limitations"] = use_groups_output_excel[
@@ -809,7 +810,7 @@ def _(use_groups_output_excel):
 @app.cell(hide_code=True)
 def _():
     mo.md(r"""
-    # Proces NAICS codes
+    # Process NAICS codes
     """)
     return
 
