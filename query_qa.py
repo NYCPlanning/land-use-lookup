@@ -146,6 +146,63 @@ def _(naics_codes, uses_by_zoning_district):
     return
 
 
+@app.cell
+def _(uses_by_zoning_district):
+    uses_by_zoning_district
+    return
+
+
+@app.cell
+def _(naics_codes):
+    naics_codes
+    return
+
+
+@app.cell
+def _(naics_codes):
+    # "Academies, riding instruction"
+    naics_codes
+    return
+
+
+@app.cell
+def _():
+    return
+
+
+@app.cell
+def _(naics_codes, uses_by_zoning_district):
+    zoning_district_list = uses_by_zoning_district[
+        "Zoning District"
+    ].unique()
+    all_addressed_naics_titles = set()
+
+    for district in zoning_district_list:
+        dist_results = get_naics_indexes_by_district(
+            uses_by_zoning_district,
+            district,
+            naics_codes,
+        )
+        naics_titles = dist_results["NAICS Title"].unique().tolist()
+        all_addressed_naics_titles.update(set(naics_titles))
+
+    all_addressed_naics_titles = list(all_addressed_naics_titles)
+    all_addressed_naics_titles = sorted(all_addressed_naics_titles)
+    all_addressed_naics_titles
+    return
+
+
+@app.cell
+def _(naics_codes, uses_by_zoning_district):
+    c1_results = get_naics_indexes_by_district(
+        uses_by_zoning_district,
+        "C1",
+        naics_codes,
+    )
+    c1_results
+    return
+
+
 @app.cell(hide_code=True)
 def _():
     mo.md(r"""

@@ -1036,6 +1036,80 @@ def _(naics_codes_output):
 @app.cell(hide_code=True)
 def _():
     mo.md(r"""
+    # Export "addressed" NAICS indices
+    """)
+    return
+
+
+@app.cell
+def _():
+    from utils.query import get_naics_indexes_by_district
+    import polars as pl
+    SOURCE_DATA_DIRECTORY = mo.notebook_location() / "public" / "data"
+    return SOURCE_DATA_DIRECTORY, get_naics_indexes_by_district, pl
+
+
+@app.cell
+def _(SOURCE_DATA_DIRECTORY, pl):
+    uses_by_zoning_district_polars = pl.read_csv(
+        str(SOURCE_DATA_DIRECTORY / "uses_by_zoning_district.csv"),
+        infer_schema_length=None,
+    )
+    # Pandas fails to read csvs from URLs with error "BadGzipFile: Not a gzipped file (b'sp')"
+    uses_by_zoning_district_prod = uses_by_zoning_district_polars.to_pandas()
+    uses_by_zoning_district_prod
+    return (uses_by_zoning_district_prod,)
+
+
+@app.cell
+def _(SOURCE_DATA_DIRECTORY, pl):
+    naics_codes_polars = pl.read_csv(
+        str(SOURCE_DATA_DIRECTORY / "naics_codes.csv"),
+        infer_schema_length=None,
+    )
+    naics_codes_prod = naics_codes_polars.to_pandas()
+    naics_codes_prod
+    return (naics_codes_prod,)
+
+
+@app.cell
+def _(
+    get_naics_indexes_by_district,
+    naics_codes_prod,
+    uses_by_zoning_district_prod,
+):
+    zoning_district_list = uses_by_zoning_district_prod[
+        "Zoning District"
+    ].unique()
+    all_addressed_naics_titles = set()
+
+    for district in zoning_district_list:
+        dist_results = get_naics_indexes_by_district(
+            uses_by_zoning_district_prod,
+            district,
+            naics_codes_prod,
+        )
+        naics_titles = dist_results["NAICS Title"].unique().tolist()
+        all_addressed_naics_titles.update(set(naics_titles))
+
+    all_addressed_naics_titles = list(all_addressed_naics_titles)
+    all_addressed_naics_titles = sorted(all_addressed_naics_titles)
+    all_addressed_naics_titles
+    return (all_addressed_naics_titles,)
+
+
+@app.cell
+def _(all_addressed_naics_titles):
+    addressed_naics_titles_output = pd.DataFrame(all_addressed_naics_titles, columns=["NAICS Title"])
+    addressed_naics_titles_output.to_csv(
+        mo.notebook_location() / "public" / "data" / "addressed_naics_titles.csv", index=False
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _():
+    mo.md(r"""
     # Explore Use Group data
     """)
     return
@@ -1119,7 +1193,7 @@ def _(uses_codes_joined_no_join):
 @app.cell(hide_code=True)
 def _():
     mo.md(r"""
-    NACICS values in Use Group data that are lists can't simply be joined to the NAICS Codes data
+    NAICS values in Use Group data that are lists can't simply be joined to the NAICS Codes data
     """)
     return
 

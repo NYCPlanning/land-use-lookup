@@ -100,7 +100,7 @@ def _():
 
 
 @app.cell
-def _(naics_codes, uses_by_zoning_district_minimal):
+def _(addressed_naics_titles, uses_by_zoning_district_minimal):
     dropdown_districts = mo.ui.dropdown(
         uses_by_zoning_district_minimal["Zoning District"],
         label="Zoning District: ",
@@ -113,7 +113,8 @@ def _(naics_codes, uses_by_zoning_district_minimal):
         searchable=True,
     )
     dropdown_naics_uses = mo.ui.dropdown(
-        sorted(naics_codes["NAICS Title"]),
+        # sorted(naics_codes["NAICS Title"]),
+        sorted(addressed_naics_titles["NAICS Title"]),
         label="Use Name: ",
         searchable=True,
     )
@@ -444,6 +445,17 @@ def _(prepare_results_columns, uses_by_zoning_district):
         ]
     ]
     return uses_by_zoning_district_minimal, zr_uses
+
+
+@app.cell
+def _(SOURCE_DATA_DIRECTORY, pl):
+    # pandas fails to read csvs from URLs with error "BadGzipFile: Not a gzipped file (b'sp')"
+    addressed_naics_titles_polars = pl.read_csv(
+        str(SOURCE_DATA_DIRECTORY / "addressed_naics_titles.csv"),
+        infer_schema_length=None,
+    )
+    addressed_naics_titles = addressed_naics_titles_polars.to_pandas()
+    return (addressed_naics_titles,)
 
 
 @app.cell
