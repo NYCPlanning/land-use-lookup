@@ -146,7 +146,9 @@ def _(dropdown_districts, dropdown_naics_uses, dropdown_zr_uses, tab_use_type):
 
 @app.cell
 def _():
-    query_by_district_intro = "**Select a Zoning District to see a full list of allowed uses.**"
+    query_by_district_intro = (
+        "**Select a Zoning District to see a full list of allowed uses.**"
+    )
 
     query_by_district_note = "_Note: If a lot has multiple associated zoning districts (e.g., R6B, C2-4), this is an instance of a Commercial District overlay. Allowances for both districts, R6 and C2 in this example, would be applicable. See the Zoning Resolution for more information at www.nyc.gov/planning._"
     return query_by_district_intro, query_by_district_note
@@ -188,7 +190,9 @@ def _(pd):
         )
 
 
-    def format_by_district_table(data: pd.DataFrame):
+    def format_by_district_table(
+        data: pd.DataFrame, columns_to_drop: list | None = None
+    ):
         column_name_mapping = {
             "Use Header": "Use Category",
             "Use Name": "Zoning Resolution Use Name",
@@ -222,6 +226,8 @@ def _(pd):
             )
             .reset_index(drop=True)
         )
+        if columns_to_drop:
+            data_reordered = data_reordered.drop(columns=columns_to_drop)
         return format_ui_table(data_reordered)
 
 
@@ -265,22 +271,51 @@ def _(
     uses_by_zoning_district_minimal,
 ):
     # by district
-    by_district_result = (
-        format_by_district_table(
-            get_all_uses_by_district(
-                uses_by_zoning_district_minimal,
-                selected_district,
-                naics_codes,
-                minimal_columns=True,
-            )
+    _by_district_result = (
+        get_all_uses_by_district(
+            uses_by_zoning_district_minimal,
+            selected_district,
+            naics_codes,
+            minimal_columns=True,
         )
         if selected_district
         else None
     )
+    by_district_result_table = (
+        format_by_district_table(_by_district_result)
+        if selected_district
+        else None
+    )
+    _by_district_result_zr_only = (
+        _by_district_result[
+            (_by_district_result["NAICS Title"] == "")
+            & (
+                ~_by_district_result["Use Name"]
+                .astype(str)
+                .str.contains("*", regex=False)
+            )
+        ]
+        if selected_district
+        else None
+    )
+    by_district_result_table_zr_only = (
+        format_by_district_table(
+            _by_district_result_zr_only, columns_to_drop=["NAICS Index Use Name"]
+        )
+        if selected_district
+        else None
+    )
+    tab_by_district_use_filtered_result = mo.ui.tabs(
+        {
+            "Zoning Resolution terms": by_district_result_table_zr_only,
+            "Expanded terms": by_district_result_table,
+        }
+    )
     result_stack_district = mo.vstack(
         [
             f"You chose '{selected_district}'",
-            by_district_result,
+            # by_district_result_table,
+            tab_by_district_use_filtered_result,
         ]
     )
 
@@ -356,7 +391,7 @@ def _(
                     mo.md("---"),
                     conditional_result_district,
                     mo.md("---"),
-                    mo.md(query_by_district_note)
+                    mo.md(query_by_district_note),
                 ],
             ),
             "## Query by use": mo.vstack(
@@ -366,7 +401,7 @@ def _(
                     mo.md("---"),
                     conditional_result_use_name,
                     mo.md("---"),
-                    mo.md(query_by_use_note)
+                    mo.md(query_by_use_note),
                 ]
             ),
         }
