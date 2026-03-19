@@ -59,12 +59,14 @@ def _():
     mo.md(r"""
     ## This tool helps identify permitted uses for parcels of land in New York City.
 
-    It is based on the NYC Department of City Planning's [Zoning Resolution](https://zoningresolution.planning.nyc.gov/) and the Census Bureau's [North American Industry Classification System](https://www.census.gov/naics/?99967) (NAICS). It can can be used to either:
+    It is based on the NYC Department of City Planning's [Zoning Resolution](https://zoningresolution.planning.nyc.gov/) and the [North American Industry Classification System](https://www.census.gov/naics/?99967) (NAICS). It can can be used to either:
 
     1. **Query by zoning district** to find which uses are allowed in a certain zoning district
-    2. **Query by Zoning Resolution use name or NAICS Index name** to find which zoning districts allow a certain use
+    2. **Query by use** (Zoning Resolution term or NAICS index) to find which zoning districts allow a certain use
 
     To find the zoning district for a lot or area, visit [ZoLa](https://zola.planning.nyc.gov/), New York City's Zoning & Land Use Map.
+
+    When considering a lot's zoning district, note that: multiple standard zoning districts (e.g., R6B and C2-4) on a single lot denote a _Commercial District overlay_, where allowances for both districts are applicable. Zoning district characters not listed on this tool (e.g., SNX, LIC, 125, DB) denote _Special Purpose Districts_, which may be subject to special use regulations. See [Zoning Resolution Appendix B](https://zr.planning.nyc.gov/appendix-b-index-special-purpose-districts) for a full list of special districts and [Articles VIII through XIV](https://zr.planning.nyc.gov/article-viii) for more information on their rules.
     """)
     return
 
@@ -120,8 +122,8 @@ def _(addressed_naics_titles, uses_by_zoning_district_minimal):
     )
     tab_use_type = mo.ui.tabs(
         {
-            "Zoning Resolution": dropdown_zr_uses,
-            "NAICS Index": dropdown_naics_uses,
+            "Zoning Resolution terms": dropdown_zr_uses,
+            "NAICS indices": dropdown_naics_uses,
         }
     )
     return (
@@ -138,7 +140,7 @@ def _(dropdown_districts, dropdown_naics_uses, dropdown_zr_uses, tab_use_type):
 
     selected_use_name = (
         dropdown_zr_uses.value
-        if tab_use_type.value == "Zoning Resolution"
+        if tab_use_type.value == "Zoning Resolution terms"
         else dropdown_naics_uses.value
     )
     return selected_district, selected_use_name
@@ -150,7 +152,7 @@ def _():
         "**Select a Zoning District to see a full list of allowed uses.**"
     )
 
-    query_by_district_note = "_Note: If a lot has multiple associated zoning districts (e.g., R6B, C2-4), this is an instance of a Commercial District overlay. Allowances for both districts, R6 and C2 in this example, would be applicable. See the Zoning Resolution for more information at www.nyc.gov/planning._"
+    query_by_district_note = '_Notes: "Expanded terms" include uses named in the Zoning Resolution, affiliated NAICS indices, and select uses manually added by DCP staff for user convenience, denoted by an asterisk (*). Any term defined in the [Zoning Resolution Glossary](https://zr.planning.nyc.gov/article-i/chapter-2#12-10) is denoted by a pound symbol (#). See the Use Notes column for more information on individual uses._'
     return query_by_district_intro, query_by_district_note
 
 
@@ -158,7 +160,7 @@ def _():
 def _():
     query_by_use_intro = "**Select a Zoning Resolution use name or NAICS Index use name to see where it's allowed.**"
 
-    query_by_use_note = "_Note: Users should prioritize “Use Name”, the language of the Zoning Resolution, over associated NAICS index names when considering the applicability of a business. Some commercial uses (e.g., agriculture, offices, health care facilities) do not have affiliated NAICS codes specified in the Zoning Resolution, though may align with unlisted NAICS codes and indices. Any term defined in the [Zoning Resolution Glossary](https://zr.planning.nyc.gov/article-i/chapter-2#12-10) is denoted by pound symbols (#). Asterisks (*) represent uses that were added for accessibility and are not specified in the Zoning Resolution Use Group Charts or captured via NAICS code._"
+    query_by_use_note = "_Notes: Any term defined in the [Zoning Resolution Glossary](https://zr.planning.nyc.gov/article-i/chapter-2#12-10) is denoted by a pound symbol (#). An asterisk (*) denotes a use that was added for user convenience and is not specified in the Zoning Resolution's use group charts. See the Use Notes column for more information on individual uses._"
     return query_by_use_intro, query_by_use_note
 
 
@@ -166,6 +168,8 @@ def _():
 def _():
     mo.md(r"""
     **Disclaimer:** _The Use Query Tool provides an overview of the use allowances and zoning rules and regulations of New York City and is not intended to serve as a substitute for the actual regulations which are to be found in the Zoning Resolution of the City of New York, available in print and also online at www.nyc.gov/planning. The City disclaims any liability for errors that may be contained herein and shall not be responsible for any damages, consequential or actual, arising out of or in connection with the use of this information._
+
+    _Users should prioritize the language of the Zoning Resolution over associated NAICS index names when considering applicability. Some commercial uses (e.g., agriculture, offices, health care facilities) do not have affiliated NAICS codes specified in the Zoning Resolution, though may align with unlisted NAICS codes and indices._
 
     _Note that some non-conforming uses exist in the city, particularly where sites pre-date zoning. There are other policies that govern siting and use allowances in addition to zoning. Contact DCP’s Zoning Help Desk at 212-720-3291 with site-specific use allowance inquiries._
     """)
