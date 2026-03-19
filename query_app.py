@@ -122,8 +122,8 @@ def _(addressed_naics_titles, uses_by_zoning_district_minimal):
     )
     tab_use_type = mo.ui.tabs(
         {
-            "Zoning Resolution terms": dropdown_zr_uses,
-            "NAICS indices": dropdown_naics_uses,
+            "Zoning Resolution": dropdown_zr_uses,
+            "NAICS Index": dropdown_naics_uses,
         }
     )
     return (
@@ -140,7 +140,7 @@ def _(dropdown_districts, dropdown_naics_uses, dropdown_zr_uses, tab_use_type):
 
     selected_use_name = (
         dropdown_zr_uses.value
-        if tab_use_type.value == "Zoning Resolution terms"
+        if tab_use_type.value == "Zoning Resolution"
         else dropdown_naics_uses.value
     )
     return selected_district, selected_use_name
