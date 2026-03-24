@@ -19,12 +19,6 @@ with app.setup:
 
 @app.cell
 def _():
-    mo.center(mo.md("# THIS APPLICATION IS IN DEVELOPMENT"))
-    return
-
-
-@app.cell
-def _():
     mo.image(
         src="public/img/dcp-logo.svg",
         alt="Notebook Header",
@@ -39,7 +33,7 @@ def _():
 
 @app.cell(hide_code=True)
 def _():
-    mo.center(mo.md("# Use Query Tool"))
+    mo.center(mo.md("# Use Lookup Tool"))
     return
 
 
@@ -57,16 +51,19 @@ def _():
 @app.cell(hide_code=True)
 def _():
     mo.md(r"""
-    ## This tool helps identify permitted uses for parcels of land in New York City.
+    ### From laundromats to bike shops, find out what zoning allows on different lots across New York City.
 
-    It is based on the NYC Department of City Planning's [Zoning Resolution](https://zoningresolution.planning.nyc.gov/) and the [North American Industry Classification System](https://www.census.gov/naics/?99967) (NAICS). It can can be used to either:
+    The Use Lookup Tool uses the New York City [Zoning Resolution](https://zoningresolution.planning.nyc.gov/) and the [North American Industry Classification System](https://www.census.gov/naics/?99967) (NAICS) to identify permitted uses.
 
-    1. **Query by zoning district** to find which uses are allowed in a certain zoning district
-    2. **Query by use** (Zoning Resolution term or NAICS index) to find which zoning districts allow a certain use
+    Using the tool, you can:
+    1. **Search by zoning district.** Find what uses are allowed in a given zoning district.
+    2. **Search by use.** Find which zoning districts allow which uses.
 
-    To find the zoning district for a lot or area, visit [ZoLa](https://zola.planning.nyc.gov/), New York City's Zoning & Land Use Map.
+    **How do I find a lot's zoning district?** To look up the zoning district for a lot or area, use ZoLa, New York City's zoning and land use map.
 
-    When considering a lot's zoning district, note that: multiple standard zoning districts (e.g., R6B and C2-4) on a single lot denote a _Commercial District overlay_, where allowances for both districts are applicable. Zoning district characters not listed on this tool (e.g., SNX, LIC, 125, DB) denote _Special Purpose Districts_, which may be subject to special use regulations. See [Zoning Resolution Appendix B](https://zr.planning.nyc.gov/appendix-b-index-special-purpose-districts) for a full list of special districts and [Articles VIII through XIV](https://zr.planning.nyc.gov/article-viii) for more information on their rules.
+    Some lots may have multiple standard zoning districts. For example, a lot might be both R6B and C2-4. This indicates a commercial district overlay, where use allowances are governed by the commercial district.
+
+    What if a zoning district is not listed on this tool? Some zoning districts are not listed on this tool, such as SNX, LIC, 125 or DB. These indicate special purpose districts that may have different rules for allowable uses. A full list of special purpose districts can be found in the Zoning Resolution's [Appendix B](https://zr.planning.nyc.gov/appendix-b-index-special-purpose-districts). For more information about rules in these districts, consult [Articles VIII through XIV](https://zr.planning.nyc.gov/article-viii) in the Zoning Resolution.
     """)
     return
 
@@ -74,24 +71,6 @@ def _():
 @app.cell
 def _(user_accordion):
     user_accordion
-    return
-
-
-@app.cell
-def _(naics_codes, zr_uses):
-    mo.accordion(
-        {
-            "## View all uses and indexes": mo.vstack(
-                [
-                    mo.md("### Zoning Resolution Uses"),
-                    zr_uses,
-                    mo.md("---"),
-                    mo.md("### NAICS Indexes"),
-                    naics_codes,
-                ]
-            ),
-        }
-    )
     return
 
 
@@ -167,11 +146,13 @@ def _():
 @app.cell
 def _():
     mo.md(r"""
-    **Disclaimer:** _The Use Query Tool provides an overview of the use allowances and zoning rules and regulations of New York City and is not intended to serve as a substitute for the actual regulations which are to be found in the Zoning Resolution of the City of New York, available in print and also online at www.nyc.gov/planning. The City disclaims any liability for errors that may be contained herein and shall not be responsible for any damages, consequential or actual, arising out of or in connection with the use of this information._
+    **Disclaimer**: The Use Query Tool provides an overview of the use allowances and zoning rules and regulations of New York City and is not intended to serve as a substitute for the actual regulations which are to be found in the Zoning Resolution of the City of New York, available at [zr.planning.nyc.gov](https://zr.planning.nyc.gov).
 
-    _Users should prioritize the language of the Zoning Resolution over associated NAICS index names when considering applicability. Some commercial uses (e.g., agriculture, offices, health care facilities) do not have affiliated NAICS codes specified in the Zoning Resolution, though may align with unlisted NAICS codes and indices._
+    The City disclaims any liability for errors that may be contained herein and shall not be responsible for any damages, consequential or actual, arising out of or in connection with the use of this information.
 
-    _Note that some non-conforming uses exist in the city, particularly where sites pre-date zoning. There are other policies that govern siting and use allowances in addition to zoning. Contact DCP’s Zoning Help Desk at 212-720-3291 with site-specific use allowance inquiries._
+    Users should prioritize the language of the Zoning Resolution over associated NAICS index names when considering applicability. Some commercial uses (e.g., agriculture, offices, health care facilities) do not have affiliated NAICS codes specified in the Zoning Resolution, though may align with unlisted NAICS codes and indices.
+
+    Note that some non-conforming uses exist in the city, particularly where sites pre-date zoning. There are other policies that govern siting and use allowances in addition to zoning. Contact DCP's Zoning Help Desk at 212-720-3291 with site-specific use allowance inquiries.
     """)
     return
 
@@ -380,15 +361,17 @@ def _(
     conditional_result_district,
     conditional_result_use_name,
     dropdown_districts,
+    naics_codes,
     query_by_district_intro,
     query_by_district_note,
     query_by_use_intro,
     query_by_use_note,
     tab_use_type,
+    zr_uses,
 ):
     user_accordion = mo.accordion(
         {
-            "## Query by zoning district": mo.vstack(
+            "## Search by zoning district": mo.vstack(
                 [
                     mo.md(query_by_district_intro),
                     dropdown_districts,
@@ -398,7 +381,7 @@ def _(
                     mo.md(query_by_district_note),
                 ],
             ),
-            "## Query by use": mo.vstack(
+            "## Search by use": mo.vstack(
                 [
                     mo.md(query_by_use_intro),
                     tab_use_type,
@@ -406,6 +389,15 @@ def _(
                     conditional_result_use_name,
                     mo.md("---"),
                     mo.md(query_by_use_note),
+                ]
+            ),
+            "## View all uses and indexes": mo.vstack(
+                [
+                    mo.md("### Zoning Resolution Uses"),
+                    zr_uses,
+                    mo.md("---"),
+                    mo.md("### NAICS Indexes"),
+                    naics_codes,
                 ]
             ),
         }
