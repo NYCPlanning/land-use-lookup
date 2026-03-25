@@ -101,8 +101,8 @@ def _(addressed_naics_titles, uses_by_zoning_district_minimal):
     )
     tab_use_type = mo.ui.tabs(
         {
-            "Zoning Resolution": dropdown_zr_uses,
-            "NAICS Index": dropdown_naics_uses,
+            "Zoning Resolution terms": dropdown_zr_uses,
+            "NAICS terms": dropdown_naics_uses,
         }
     )
     return (
@@ -119,7 +119,7 @@ def _(dropdown_districts, dropdown_naics_uses, dropdown_zr_uses, tab_use_type):
 
     selected_use_name = (
         dropdown_zr_uses.value
-        if tab_use_type.value == "Zoning Resolution"
+        if tab_use_type.value == "Zoning Resolution terms"
         else dropdown_naics_uses.value
     )
     return selected_district, selected_use_name
@@ -146,7 +146,7 @@ def _():
 @app.cell
 def _():
     mo.md(r"""
-    **Disclaimer**: _The Use Query Tool provides an overview of the use allowances and zoning rules and regulations of New York City and is not intended to serve as a substitute for the actual regulations which are to be found in the Zoning Resolution of the City of New York, available at [zr.planning.nyc.gov](https://zr.planning.nyc.gov). The City disclaims any liability for errors that may be contained herein and shall not be responsible for any damages, consequential or actual, arising out of or in connection with the use of this information._
+    **Disclaimer**: _The Land Use Lookup provides an overview of the use allowances and zoning rules and regulations of New York City and is not intended to serve as a substitute for the actual regulations which are to be found in the Zoning Resolution of the City of New York, available at [zr.planning.nyc.gov](https://zr.planning.nyc.gov). The City disclaims any liability for errors that may be contained herein and shall not be responsible for any damages, consequential or actual, arising out of or in connection with the use of this information._
 
     _Users should prioritize the language of the Zoning Resolution over associated NAICS index names when considering applicability. Some commercial uses (e.g., agriculture, offices, health care facilities) do not have affiliated NAICS codes specified in the Zoning Resolution, though may align with unlisted NAICS codes and indices._
 
@@ -312,7 +312,7 @@ def _(
                     minimal_columns=True,
                 )
             )
-            if tab_use_type.value == "Zoning Resolution"
+            if tab_use_type.value == "Zoning Resolution terms"
             else format_by_naics_use_table(
                 get_district_uses_by_naics_index(
                     uses_by_zoning_district_minimal,
