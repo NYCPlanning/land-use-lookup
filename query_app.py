@@ -1012,8 +1012,6 @@ def _(
             "Is Allowed",
             "NAICS Title",
             "NAICS Code",
-            "Permitted reason",
-            "Permitted value",
         ]
         return prepare_results_columns(results, first_columns, minimal_columns)
 
@@ -1148,8 +1146,6 @@ def _(
             "Use Name",
             "Zoning District",
             "Is Allowed",
-            "Permitted reason",
-            "Permitted value",
         ]
         return prepare_results_columns(results, first_columns, minimal_columns)
     return (
