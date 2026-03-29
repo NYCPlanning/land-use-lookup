@@ -5,6 +5,13 @@
   --marimo-text-font: "Public Sans", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
+.markdown .paragraph,
+.markdown li {
+  font-size: 20px;
+  line-height: 1.5;
+  color: #000000;
+}
+
 [data-testid="watermark"] {
   display: none !important;
 }
