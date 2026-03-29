@@ -20,14 +20,7 @@ with app.setup:
 @app.cell(hide_code=True)
 def _():
     mo.Html("""
-    <header style="
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px 0;
-        border-bottom: 1px solid #000000;
-        margin-bottom: 8px;
-    ">
+    <header class="site-header">
         <img src="public/img/dcp-logo.svg" alt="NYC Planning logo" style="width: 96px; height: auto;" />
         <span style="
             font-family: 'Public Sans', sans-serif;
