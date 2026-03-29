@@ -35,7 +35,7 @@ def _():
             font-size: 24px;
             line-height: 24px;
             color: #000000;
-        ">Use Lookup Tool</span>
+        ">Land Use Lookup Tool</span>
     </header>
     """)
     return
@@ -54,9 +54,22 @@ def _():
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""
-    ### From laundromats to bike shops, find out what zoning allows on different lots across New York City.
+    mo.Html("""
+    <h1 style="
+        font-family: 'Public Sans', sans-serif;
+        font-weight: 800;
+        font-size: 36px;
+        line-height: 42px;
+        color: #063793;
+        margin: 0;
+    ">From laundromats to bike shops, find out what zoning allows on different lots across New York City.</h1>
+    """)
+    return
 
+
+@app.cell(hide_code=True)
+def _():
+    mo.md(r"""
     The Land Use Lookup uses the New York City [Zoning Resolution](https://zoningresolution.planning.nyc.gov/) and the [North American Industry Classification System](https://www.census.gov/naics/?99967) (NAICS) to identify permitted uses.
 
     Using the tool, you can:
