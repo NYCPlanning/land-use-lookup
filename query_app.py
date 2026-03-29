@@ -162,13 +162,14 @@ def _():
 
 @app.cell
 def _():
-    mo.md(r"""
+    _disclaimer = mo.md(r"""
     **Disclaimer**: _The Land Use Lookup provides an overview of the use allowances and zoning rules and regulations of New York City and is not intended to serve as a substitute for the actual regulations which are to be found in the Zoning Resolution of the City of New York, available at [zr.planning.nyc.gov](https://zr.planning.nyc.gov). The City disclaims any liability for errors that may be contained herein and shall not be responsible for any damages, consequential or actual, arising out of or in connection with the use of this information._
 
     _Users should prioritize the language of the Zoning Resolution over associated NAICS index names when considering applicability. Some commercial uses (e.g., agriculture, offices, health care facilities) do not have affiliated NAICS codes specified in the Zoning Resolution, though may align with unlisted NAICS codes and indices._
 
     _Note that some non-conforming uses exist in the city, particularly where sites pre-date zoning. There are other policies that govern siting and use allowances in addition to zoning. Contact DCP's Zoning Help Desk at 212-720-3291 with site-specific use allowance inquiries._
     """)
+    mo.Html(f'<div class="disclaimer">{_disclaimer.text}</div>')
     return
 
 
