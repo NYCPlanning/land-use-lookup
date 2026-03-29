@@ -17,23 +17,27 @@ with app.setup:
     import marimo as mo
 
 
-@app.cell
-def _():
-    mo.image(
-        src="public/img/dcp-logo.svg",
-        alt="Notebook Header",
-        width=200,
-        style={
-            "margin-left": "auto",
-            "margin-right": "auto",
-        },
-    )
-    return
-
-
 @app.cell(hide_code=True)
 def _():
-    mo.center(mo.md("# Land Use Lookup"))
+    mo.Html("""
+    <header style="
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid #000000;
+        margin-bottom: 8px;
+    ">
+        <img src="public/img/dcp-logo.svg" alt="NYC Planning logo" style="width: 96px; height: auto;" />
+        <span style="
+            font-family: 'Public Sans', sans-serif;
+            font-weight: 800;
+            font-size: 24px;
+            line-height: 24px;
+            color: #000000;
+        ">Use Lookup Tool</span>
+    </header>
+    """)
     return
 
 
