@@ -1,6 +1,8 @@
+@import url("https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,100..900;1,100..900&display=swap");
+
 :root {
-  --marimo-heading-font: "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --marimo-text-font: "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --marimo-heading-font: "Public Sans", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --marimo-text-font: "Public Sans", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 [data-testid="watermark"] {
