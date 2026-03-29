@@ -387,7 +387,7 @@ def _(
 ):
     user_accordion = mo.accordion(
         {
-            "## Search by zoning district": mo.vstack(
+            "<strong style='font-size:24px;line-height:24px'>Search by <span style='color:#D76A27'>zoning district</span></strong>": mo.vstack(
                 [
                     mo.md(query_by_district_intro),
                     dropdown_districts,
@@ -397,7 +397,7 @@ def _(
                     mo.md(query_by_district_note),
                 ],
             ),
-            "## Search by use": mo.vstack(
+            "<strong style='font-size:24px;line-height:24px'>Search by <span style='color:#319795'>use</span></strong>": mo.vstack(
                 [
                     mo.md(query_by_use_intro),
                     tab_use_type,
@@ -407,7 +407,7 @@ def _(
                     mo.md(query_by_use_note),
                 ]
             ),
-            "## View all uses and indexes": mo.vstack(
+            "<span style='font-size:24px;line-height:24px'>View all uses and indexes</span>": mo.vstack(
                 [
                     mo.md("### Zoning Resolution Uses"),
                     zr_uses,
