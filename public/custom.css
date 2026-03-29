@@ -12,6 +12,10 @@
   color: #000000;
 }
 
+.markdown strong {
+  font-weight: 800;
+}
+
 .disclaimer .paragraph,
 .disclaimer li {
   font-size: 16px;
