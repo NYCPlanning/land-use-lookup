@@ -12,6 +12,12 @@
   color: #000000;
 }
 
+.disclaimer .paragraph,
+.disclaimer li {
+  font-size: 16px;
+  line-height: 18px;
+}
+
 [data-testid="watermark"] {
   display: none !important;
 }
