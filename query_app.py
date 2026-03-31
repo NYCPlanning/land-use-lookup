@@ -11,7 +11,11 @@
 import marimo
 
 __generated_with = "0.19.4"
-app = marimo.App(width="medium", css_file="public/custom.css")
+app = marimo.App(
+    width="medium",
+    app_title="Land Use Lookup",
+    css_file="public/custom.css",
+)
 
 with app.setup:
     import marimo as mo
