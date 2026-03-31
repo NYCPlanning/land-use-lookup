@@ -1,6 +1,6 @@
-# Use Query Tool
+# Land Use Lookup
 
-The [Use Query Tool](https://nycplanning.github.io/edr-use-query-tool/) is intended to make use allowance rules clear and accessible to business and property owners, city staff, and the public in the wake of changes adopted through [City of Yes](https://www.nyc.gov/content/planning/pages/our-work?active=citywide).
+The [Land Use Lookup](https://nycplanning.github.io/land-use-lookup/) tool is intended to make use allowance rules clear and accessible to business and property owners, city staff, and the public in the wake of changes adopted through [City of Yes](https://www.nyc.gov/content/planning/pages/our-work?active=citywide).
 
 This simple web tool allows a user to instantly check whether any particular commercial, residential, or other use is allowed in any zoning district per the [Zoning Resolution](https://zr.planning.nyc.gov/), without having to navigate the text directly. Use allowances can be queried by their official Zoning-defined use names, associated/underlying NAICS indices, or by selecting a zoning district and seeing a full list of what’s allowed there.
 
