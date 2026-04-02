@@ -20,6 +20,15 @@ A github action converts the notebook to WASM HTML and deploys the page. The act
 3. Run `uv pip sync requirements.txt` to ensure virtual environment has desired packages and their versions
 4. Activate the virtual environment with `source .venv/bin/activate`
 
+### Process for making changes
+
+1. Create a new branch to modify data or code files
+2. If data files in `input/` have been modified, run `marimo run process_data.py` to update files used by the app
+3. (Optional) Run the app locally with `marimo run query_app.py` to confirm changes have the expected results
+4. Open a Pull Request to request review of changes (emergency fixes may have to be merged without review)
+5. Once approved, merge the Pull Request
+6. Once the GitHub action automatically updates and redeploys the app, confirm the changes have the expected results
+
 ### Notebooks
 
 `marimo` [docs](https://docs.marimo.io/)
